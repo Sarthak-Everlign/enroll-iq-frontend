@@ -1,0 +1,70 @@
+{
+  "users": [
+    {
+      "id": "test_user_1",
+      "username": "user_testing",
+      "email": "testing@email.com",
+      "phone": "9876543210",
+      "emailOtp": "123456",
+      "phoneOtp": "654321",
+      "password": "test123"
+    }
+  ],
+  "aadharData": {
+    "validAadharNumbers": ["123456789012", "987654321098"],
+    "aadharOtp": "112233",
+    "aadharDetails": {
+      "123456789012": {
+        "fullName": "Rahul Kumar Sharma",
+        "fatherName": "Ramesh Kumar Sharma",
+        "dob": "1998-05-15",
+        "gender": "male",
+        "address": "42, Shanti Nagar, Near City Mall",
+        "city": "Mumbai",
+        "state": "maharashtra",
+        "pincode": "400001",
+        "phone": "9876543210",
+        "photo": "/api/placeholder/150/180"
+      },
+      "987654321098": {
+        "fullName": "Priya Singh",
+        "fatherName": "Vikram Singh",
+        "dob": "1999-08-22",
+        "gender": "female",
+        "address": "15, Aundh",
+        "city": "Pune",
+        "state": "maharashtra",
+        "pincode": "110001",
+        "phone": "9123456789",
+        "photo": "/api/placeholder/150/180"
+      }
+    }
+  },
+  "panData": {
+    "validPanNumbers": ["ABCDE1234F", "XYZAB5678G"],
+    "panDetails": {
+      "ABCDE1234F": {
+        "name": "RAHUL KUMAR SHARMA",
+        "fatherName": "RAMESH KUMAR SHARMA",
+        "dob": "15/05/1998",
+        "panType": "Individual"
+      },
+      "XYZAB5678G": {
+        "name": "PRIYA SINGH",
+        "fatherName": "VIKRAM SINGH",
+        "dob": "22/08/1999",
+        "panType": "Individual"
+      }
+    }
+  },
+  "videoKycReference": {
+    "instructions": [
+      "Hold your Aadhar card next to your face",
+      "Ensure good lighting on your face",
+      "Keep your face centered in the frame",
+      "Make sure the Aadhar card details are visible"
+    ],
+    "sampleImageUrl": "/sample-kyc-reference.png"
+  }
+}
+

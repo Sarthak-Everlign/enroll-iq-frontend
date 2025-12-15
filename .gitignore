@@ -1,0 +1,133 @@
+####################################
+# OS / System Files
+####################################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+####################################
+# Node / Next.js
+####################################
+node_modules/
+.next/
+out/
+build/
+dist/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+####################################
+# Environment variables
+####################################
+.env
+.env.*
+!.env.example
+
+####################################
+# Python / FastAPI
+####################################
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+
+# ✅ Python installed packages
+site-packages/
+lib/python*/
+Lib/site-packages/
+
+####################################
+# FastAPI / Uvicorn
+####################################
+*.log
+uvicorn.log
+
+####################################
+# Python package builds
+####################################
+build/
+dist/
+*.egg-info/
+.eggs/
+
+####################################
+# Jupyter / Notebooks
+####################################
+.ipynb_checkpoints/
+
+####################################
+# Pytest / Coverage
+####################################
+.coverage
+htmlcov/
+.pytest_cache/
+
+####################################
+# mypy / Ruff / Pylint
+####################################
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pylint.d/
+
+####################################
+# IDEs & Editors
+####################################
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+####################################
+# Docker
+####################################
+.dockerignore
+docker-compose.override.yml
+
+####################################
+# Logs & Temp
+####################################
+logs/
+*.log
+tmp/
+temp/
+
+####################################
+# Uploads / Generated Files
+####################################
+uploads/
+media/
+staticfiles/
+
+####################################
+# Database
+####################################
+*.sqlite3
+*.db
+
+####################################
+# Secrets / Keys
+####################################
+*.pem
+*.key
+*.crt
+
+####################################
+# Caches
+####################################
+.cache/
+.npm/
+.pnpm-store/
+
+####################################
+# Misc
+####################################
+coverage/
