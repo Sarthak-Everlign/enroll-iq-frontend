@@ -1,4 +1,4 @@
-const API_BASE_URL ='http://ec2-98-89-42-23.compute-1.amazonaws.com:8000'
+const API_BASE_URL ='https://enroll-iq-alb-294927988.us-east-1.elb.amazonaws.com'
 export interface University {
   id: number
   name: string
