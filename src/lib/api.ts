@@ -1,7 +1,4 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-// ============== University Types ==============
-
 export interface University {
   id: number
   name: string
@@ -317,5 +314,418 @@ export async function uploadMarksheet(
       message: 'Failed to upload marksheet. Please try again.',
       is_eligible: null,
     }
+  }
+}
+export interface AuthUser {
+  id: number
+  email: string
+  phone: string | null
+  username: string | null
+  full_name: string | null
+  aadhar_verified: boolean
+  pan_verified: boolean
+  kyc_completed: boolean
+  created_at: string | null
+  last_login: string | null
+}
+
+export interface AuthResponse {
+  success: boolean
+  message: string
+  user?: AuthUser
+  token?: string
+}
+
+export interface RegisterRequest {
+  email: string
+  phone?: string
+  password: string
+  username?: string
+}
+
+export interface LoginRequest {
+  email?: string
+  phone?: string
+  password: string
+}
+
+// ============== Application Types ==============
+
+export interface ApplicationData {
+  id: number
+  user_id: number
+  current_step: number
+  personal_details: {
+    full_name: string | null
+    father_name: string | null
+    date_of_birth: string | null
+    gender: string | null
+    address: string | null
+    city: string | null
+    state: string | null
+    pincode: string | null
+    phone: string | null
+    email: string | null
+    nationality: string | null
+    category: string | null
+  }
+  documents: {
+    marksheet_10th: {
+      file: string | null
+      percentage: number | null
+      verified: boolean
+      eligible: boolean | null
+      data: Record<string, unknown> | null
+    }
+    marksheet_12th: {
+      file: string | null
+      percentage: number | null
+      verified: boolean
+      eligible: boolean | null
+      data: Record<string, unknown> | null
+    }
+    graduation: {
+      file: string | null
+      percentage: number | null
+      verified: boolean
+      eligible: boolean | null
+      data: Record<string, unknown> | null
+    }
+    form16: {
+      file: string | null
+      verified: boolean
+      income: number | null
+      eligible: boolean | null
+    }
+    caste_certificate: {
+      file: string | null
+      verified: boolean
+      category: string | null
+    }
+  }
+  university: {
+    university_id: number | null
+    university_name: string | null
+    university_country: string | null
+    university_rank: number | null
+    course_name: string | null
+    course_degree_type: string | null
+    total_fees_usd: number | null
+    total_fees_inr: number | null
+    fees_page_url: string | null
+    fees_verified: boolean
+    fees_verification_status: string | null
+    offer_letter_file: string | null
+  }
+  application_status: string
+  submitted_at: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface ApplicationResponse {
+  success: boolean
+  message: string
+  data?: ApplicationData
+}
+
+// ============== Auth Token Management ==============
+
+const AUTH_TOKEN_KEY = 'enroll_iq_token'
+const AUTH_USER_KEY = 'enroll_iq_user'
+
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(AUTH_TOKEN_KEY)
+}
+
+export function setAuthToken(token: string): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(AUTH_TOKEN_KEY, token)
+}
+
+export function clearAuthToken(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem(AUTH_TOKEN_KEY)
+  localStorage.removeItem(AUTH_USER_KEY)
+}
+
+export function getStoredUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null
+  const userStr = localStorage.getItem(AUTH_USER_KEY)
+  return userStr ? JSON.parse(userStr) : null
+}
+
+export function setStoredUser(user: AuthUser): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user))
+}
+
+function getAuthHeaders(): HeadersInit {
+  const token = getAuthToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+// ============== Auth API Functions ==============
+
+export async function register(request: RegisterRequest): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    })
+
+    const data = await response.json()
+    
+    if (!response.ok) {
+      return { success: false, message: data.detail || 'Registration failed' }
+    }
+
+    // Store token and user
+    if (data.token) setAuthToken(data.token)
+    if (data.user) setStoredUser(data.user)
+
+    return data
+  } catch (error) {
+    console.error('Registration error:', error)
+    return { success: false, message: 'Failed to connect to server' }
+  }
+}
+
+export async function login(request: LoginRequest): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    })
+
+    const data = await response.json()
+    
+    if (!response.ok) {
+      return { success: false, message: data.detail || 'Login failed' }
+    }
+
+    // Store token and user
+    if (data.token) setAuthToken(data.token)
+    if (data.user) setStoredUser(data.user)
+
+    return data
+  } catch (error) {
+    console.error('Login error:', error)
+    return { success: false, message: 'Failed to connect to server' }
+  }
+}
+
+export async function logout(): Promise<AuthResponse> {
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
+
+  clearAuthToken()
+  return { success: true, message: 'Logged out' }
+}
+
+export async function getCurrentUser(): Promise<AuthResponse> {
+  const token = getAuthToken()
+  if (!token) {
+    return { success: false, message: 'Not authenticated' }
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: getAuthHeaders(),
+    })
+
+    const data = await response.json()
+    
+    if (!response.ok) {
+      clearAuthToken()
+      return { success: false, message: data.detail || 'Session expired' }
+    }
+
+    if (data.user) setStoredUser(data.user)
+    return data
+  } catch (error) {
+    console.error('Get user error:', error)
+    return { success: false, message: 'Failed to connect to server' }
+  }
+}
+
+export async function verifyAadhar(aadharNumber: string, otp: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/verify-aadhar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ aadhar_number: aadharNumber, otp }),
+    })
+
+    const data = await response.json()
+    if (data.user) setStoredUser(data.user)
+    return data
+  } catch (error) {
+    console.error('Aadhar verification error:', error)
+    return { success: false, message: 'Failed to verify Aadhar' }
+  }
+}
+
+export async function verifyPan(panNumber: string): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/verify-pan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ pan_number: panNumber }),
+    })
+
+    const data = await response.json()
+    if (data.user) setStoredUser(data.user)
+    return data
+  } catch (error) {
+    console.error('PAN verification error:', error)
+    return { success: false, message: 'Failed to verify PAN' }
+  }
+}
+
+export async function completeKyc(): Promise<AuthResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/complete-kyc`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+
+    const data = await response.json()
+    if (data.user) setStoredUser(data.user)
+    return data
+  } catch (error) {
+    console.error('KYC completion error:', error)
+    return { success: false, message: 'Failed to complete KYC' }
+  }
+}
+
+// ============== Application API Functions ==============
+
+export async function getApplication(): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/`, {
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      return { success: false, message: data.detail || 'Failed to load application' }
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Get application error:', error)
+    return { success: false, message: 'Failed to connect to server' }
+  }
+}
+
+export async function updatePersonalDetails(data: Partial<ApplicationData['personal_details']>): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/personal-details`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(data),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Update personal details error:', error)
+    return { success: false, message: 'Failed to save personal details' }
+  }
+}
+
+export async function updateDocuments(data: Record<string, unknown>): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/documents`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(data),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Update documents error:', error)
+    return { success: false, message: 'Failed to save documents' }
+  }
+}
+
+export async function updateUniversityDetails(data: Partial<ApplicationData['university']>): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/university`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(data),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Update university details error:', error)
+    return { success: false, message: 'Failed to save university details' }
+  }
+}
+
+export async function updateApplicationStep(step: number): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/step?step=${step}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Update step error:', error)
+    return { success: false, message: 'Failed to update step' }
+  }
+}
+
+export async function submitApplication(): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/submit`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Submit application error:', error)
+    return { success: false, message: 'Failed to submit application' }
+  }
+}
+
+export async function resetApplication(): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/application/`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    })
+
+    return await response.json()
+  } catch (error) {
+    console.error('Reset application error:', error)
+    return { success: false, message: 'Failed to reset application' }
   }
 }

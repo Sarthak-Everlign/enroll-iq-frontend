@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import Stepper from '@/components/Stepper'
 import Login, { UserData } from '@/components/steps/Login'
@@ -9,6 +9,19 @@ import PersonalDetails, { PersonalFormData, PrefillData } from '@/components/ste
 import VideoKYC, { KYCData } from '@/components/steps/VideoKYC'
 import UploadDocuments, { DocumentsFormData } from '@/components/steps/UploadDocuments'
 import UniversityDetails, { UniversityFormData } from '@/components/steps/UniversityDetails'
+import { 
+  getAuthToken, 
+  getStoredUser, 
+  logout as apiLogout,
+  getCurrentUser,
+  getApplication,
+  updatePersonalDetails,
+  updateDocuments,
+  updateUniversityDetails,
+  updateApplicationStep,
+  type ApplicationData
+} from '@/lib/api'
+import { Loader2 } from 'lucide-react'
 
 const initialPersonalData: PersonalFormData = {
   fullName: '',
@@ -60,8 +73,10 @@ const initialDocumentsData: DocumentsFormData = {
 }
 
 const initialUniversityData: UniversityFormData = {
-  university: '',
+  universityId: null,
+  universityName: '',
   course: '',
+  courseDegreeType: '',
   totalFees: '',
   offerLetter: null,
   feesPageUrl: '',
@@ -69,6 +84,9 @@ const initialUniversityData: UniversityFormData = {
 }
 
 export default function Home() {
+  // Loading state for initial auth check
+  const [isLoading, setIsLoading] = useState(true)
+  
   // Authentication state
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
@@ -83,14 +101,174 @@ export default function Home() {
   const [documentsData, setDocumentsData] = useState<DocumentsFormData>(initialDocumentsData)
   const [universityData, setUniversityData] = useState<UniversityFormData>(initialUniversityData)
 
+  // Check for existing session on mount
+  useEffect(() => {
+    checkExistingSession()
+  }, [])
+
+  const checkExistingSession = async () => {
+    const token = getAuthToken()
+    const storedUser = getStoredUser()
+    
+    if (token && storedUser) {
+      // Verify token is still valid
+      const response = await getCurrentUser()
+      
+      if (response.success && response.user) {
+        setUserData({
+          id: String(response.user.id),
+          username: response.user.username || response.user.email.split('@')[0],
+          email: response.user.email,
+          phone: response.user.phone || '',
+        })
+        setIsLoggedIn(true)
+        
+        // Load application data
+        await loadApplicationData()
+      }
+    }
+    
+    setIsLoading(false)
+  }
+
+  const loadApplicationData = async () => {
+    const response = await getApplication()
+    
+    if (response.success && response.data) {
+      const app = response.data
+      
+      // Restore step
+      if (app.current_step) {
+        setCurrentStep(app.current_step)
+      }
+      
+      // Restore personal details
+      if (app.personal_details) {
+        const pd = app.personal_details
+        const dob = pd.date_of_birth ? pd.date_of_birth.split('-') : ['', '', '']
+        
+        setPersonalData({
+          ...initialPersonalData,
+          fullName: pd.full_name || '',
+          fatherName: pd.father_name || '',
+          dobYear: dob[0] || '',
+          dobMonth: dob[1] || '',
+          dobDay: dob[2] || '',
+          gender: pd.gender || '',
+          address: pd.address || '',
+          city: pd.city || '',
+          state: pd.state || '',
+          pincode: pd.pincode || '',
+          phone: pd.phone || '',
+          email: pd.email || '',
+        })
+      }
+      
+      // Restore documents data
+      if (app.documents) {
+        const docs = app.documents
+        setDocumentsData({
+          ...initialDocumentsData,
+          marksheet10thVerified: docs.marksheet_10th?.verified || false,
+          marksheet10thEligible: docs.marksheet_10th?.eligible ?? null,
+          marksheet10thData: docs.marksheet_10th?.data || null,
+          marksheet12thVerified: docs.marksheet_12th?.verified || false,
+          marksheet12thEligible: docs.marksheet_12th?.eligible ?? null,
+          marksheet12thData: docs.marksheet_12th?.data || null,
+          graduationVerified: docs.graduation?.verified || false,
+          graduationEligible: docs.graduation?.eligible ?? null,
+          graduationData: docs.graduation?.data || null,
+          form16Verified: docs.form16?.verified || false,
+          form16Eligible: docs.form16?.eligible ?? null,
+          casteVerified: docs.caste_certificate?.verified || false,
+        })
+      }
+      
+      // Restore university data
+      if (app.university) {
+        const uni = app.university
+        setUniversityData({
+          ...initialUniversityData,
+          universityId: uni.university_id,
+          universityName: uni.university_name || '',
+          course: uni.course_name || '',
+          courseDegreeType: uni.course_degree_type || '',
+          totalFees: uni.total_fees_usd ? String(uni.total_fees_usd) : '',
+          feesPageUrl: uni.fees_page_url || '',
+          isVerified: uni.fees_verified || false,
+        })
+      }
+    }
+  }
+
+  // Save personal details to backend
+  const savePersonalDetails = async (data: PersonalFormData) => {
+    const dob = data.dobYear && data.dobMonth && data.dobDay 
+      ? `${data.dobYear}-${data.dobMonth}-${data.dobDay}` 
+      : null
+    
+    await updatePersonalDetails({
+      full_name: data.fullName || null,
+      father_name: data.fatherName || null,
+      date_of_birth: dob,
+      gender: data.gender || null,
+      address: data.address || null,
+      city: data.city || null,
+      state: data.state || null,
+      pincode: data.pincode || null,
+      phone: data.phone || null,
+      email: data.email || null,
+    })
+  }
+
+  // Save documents data to backend
+  const saveDocumentsData = async (data: DocumentsFormData) => {
+    await updateDocuments({
+      marksheet_10th_verified: data.marksheet10thVerified,
+      marksheet_10th_eligible: data.marksheet10thEligible,
+      marksheet_10th_data: data.marksheet10thData,
+      marksheet_10th_percentage: data.marksheet10thData?.percentage || null,
+      marksheet_12th_verified: data.marksheet12thVerified,
+      marksheet_12th_eligible: data.marksheet12thEligible,
+      marksheet_12th_data: data.marksheet12thData,
+      marksheet_12th_percentage: data.marksheet12thData?.percentage || null,
+      graduation_verified: data.graduationVerified,
+      graduation_eligible: data.graduationEligible,
+      graduation_data: data.graduationData,
+      graduation_percentage: data.graduationData?.percentage || null,
+      form16_verified: data.form16Verified,
+      form16_eligible: data.form16Eligible,
+      caste_certificate_verified: data.casteVerified,
+    })
+  }
+
+  // Save university data to backend
+  const saveUniversityData = async (data: UniversityFormData) => {
+    await updateUniversityDetails({
+      university_id: data.universityId,
+      university_name: data.universityName || null,
+      course_name: data.course || null,
+      course_degree_type: data.courseDegreeType || null,
+      total_fees_usd: data.totalFees ? parseFloat(data.totalFees) : null,
+      total_fees_inr: data.totalFees ? parseFloat(data.totalFees) * 83 : null,
+      fees_page_url: data.feesPageUrl || null,
+      fees_verified: data.isVerified,
+      fees_verification_status: data.verificationResult?.status || null,
+    })
+  }
+
   // Login handler
-  const handleLoginSuccess = (user: UserData) => {
+  const handleLoginSuccess = async (user: UserData) => {
     setUserData(user)
     setIsLoggedIn(true)
+    
+    // Load existing application data
+    await loadApplicationData()
   }
 
   // Logout handler
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await apiLogout()
     setIsLoggedIn(false)
     setUserData(null)
     setCurrentStep(1)
@@ -101,10 +279,22 @@ export default function Home() {
     setUniversityData(initialUniversityData)
   }
 
-  // Navigation handlers
-  const handleNext = () => {
+  // Navigation handlers with auto-save
+  const handleNext = async () => {
     if (currentStep < 5) {
-      setCurrentStep(currentStep + 1)
+      const nextStep = currentStep + 1
+      setCurrentStep(nextStep)
+      
+      // Save current step data and update step on backend
+      await updateApplicationStep(nextStep)
+      
+      // Save current step's data
+      if (currentStep === 2) {
+        await savePersonalDetails(personalData)
+      } else if (currentStep === 4) {
+        await saveDocumentsData(documentsData)
+      }
+      
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
@@ -116,9 +306,18 @@ export default function Home() {
     }
   }
 
-  const handleStepClick = (step: number) => {
-    // Allow navigation to any step (no validation required)
+  const handleStepClick = async (step: number) => {
+    // Save current step data before navigating
+    if (currentStep === 2) {
+      await savePersonalDetails(personalData)
+    } else if (currentStep === 4) {
+      await saveDocumentsData(documentsData)
+    } else if (currentStep === 5) {
+      await saveUniversityData(universityData)
+    }
+    
     setCurrentStep(step)
+    await updateApplicationStep(step)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -138,6 +337,31 @@ export default function Home() {
     handleNext()
   }
 
+  // Personal data change handler with auto-save
+  const handlePersonalDataChange = (data: PersonalFormData) => {
+    setPersonalData(data)
+  }
+
+  // Documents data change handler with auto-save
+  const handleDocumentsDataChange = (data: DocumentsFormData) => {
+    setDocumentsData(data)
+    // Save immediately when verification status changes
+    if (data.marksheet10thVerified !== documentsData.marksheet10thVerified ||
+        data.marksheet12thVerified !== documentsData.marksheet12thVerified ||
+        data.graduationVerified !== documentsData.graduationVerified) {
+      saveDocumentsData(data)
+    }
+  }
+
+  // University data change handler with auto-save
+  const handleUniversityDataChange = (data: UniversityFormData) => {
+    setUniversityData(data)
+    // Save immediately when verification completes
+    if (data.isVerified !== universityData.isVerified) {
+      saveUniversityData(data)
+    }
+  }
+
   // Create prefill data for personal details from aadhar
   const getPrefillData = (): PrefillData | null => {
     if (!aadharDetails) return null
@@ -153,6 +377,18 @@ export default function Home() {
       phone: aadharDetails.phone,
       aadhaarNumber: aadharDetails.aadharNumber,
     }
+  }
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   // If not logged in, show login page
@@ -201,7 +437,7 @@ export default function Home() {
                 onNext={handleNext}
                 onBack={handleBack}
                 data={personalData}
-                onDataChange={setPersonalData}
+                onDataChange={handlePersonalDataChange}
                 prefillData={getPrefillData()}
               />
             )}
@@ -221,7 +457,7 @@ export default function Home() {
                 onNext={handleNext}
                 onBack={handleBack}
                 data={documentsData}
-                onDataChange={setDocumentsData}
+                onDataChange={handleDocumentsDataChange}
                 personalData={{ fullName: personalData.fullName }}
               />
             )}
@@ -231,7 +467,7 @@ export default function Home() {
               <UniversityDetails
                 onBack={handleBack}
                 data={universityData}
-                onDataChange={setUniversityData}
+                onDataChange={handleUniversityDataChange}
               />
             )}
           </div>
