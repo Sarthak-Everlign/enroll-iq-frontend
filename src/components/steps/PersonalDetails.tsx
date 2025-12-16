@@ -170,7 +170,7 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
       'fullName', 'fatherName', 'dobYear', 'dobMonth', 'dobDay', 
       'gender', 'aadhaarNumber', 'address', 'city', 'state', 'pincode', 'phone'
     ]
-    return prefillData && aadharFields.includes(field)
+    return !!prefillData && aadharFields.includes(field)
   }
 
   return (
