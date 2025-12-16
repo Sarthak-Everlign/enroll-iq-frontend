@@ -291,13 +291,13 @@ export default function DocumentUploadCard({
               </div>
               {verificationResult.data && (
                 <div className="mt-2 pt-2 border-t border-green-100">
-                  {verificationResult.data.formatted_income && (
+                  {verificationResult.data.formatted_income != null && (
                     <p className="text-xs text-green-700">
                       <span className="font-medium">Income:</span>{" "}
                       {String(verificationResult.data.formatted_income)}
                     </p>
                   )}
-                  {verificationResult.data.category && (
+                  {verificationResult.data.category != null && (
                     <p className="text-xs text-green-700">
                       <span className="font-medium">Category:</span>{" "}
                       {String(verificationResult.data.category)}
