@@ -1,4 +1,4 @@
-const API_BASE_URL ='https://social-welfare-testing.everlign.ai/'
+const API_BASE_URL ='https://social-welfare-testing.everlign.ai'
 export interface University {
   id: number
   name: string
