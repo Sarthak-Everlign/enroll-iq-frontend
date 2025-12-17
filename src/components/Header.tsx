@@ -36,21 +36,7 @@ export default function Header({ userName, onLogout }: HeaderProps) {
               <p className="text-[10px] lg:text-xs text-gray-400 -mt-1">Smart Enrollment Platform</p>
             </div>
           </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {['Home', 'About Us', 'Programs', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200 relative group"
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
-          </nav>
-
+          
           {/* Right Side */}
           <div className="flex items-center gap-4">
             {/* Profile Dropdown */}
@@ -89,22 +75,6 @@ export default function Header({ userName, onLogout }: HeaderProps) {
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="py-2">
-                      <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
-                        <User className="w-4 h-4 text-gray-400" />
-                        My Profile
-                      </a>
-                      <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
-                        <FileText className="w-4 h-4 text-gray-400" />
-                        My Applications
-                      </a>
-                      <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        Settings
-                      </a>
-                    </div>
-                    
                     <hr className="border-gray-200" />
                     
                     <div className="py-2">
@@ -134,15 +104,6 @@ export default function Header({ userName, onLogout }: HeaderProps) {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="lg:hidden py-4 border-t border-gray-700 animate-fade-in">
-            {['Home', 'About Us', 'Programs', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="block py-3 text-gray-300 hover:text-white font-medium transition-colors"
-              >
-                {item}
-              </a>
-            ))}
             <hr className="my-3 border-gray-700" />
             <button 
               onClick={handleLogout}

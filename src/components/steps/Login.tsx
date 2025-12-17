@@ -75,15 +75,20 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           email, 
           phone: phone || undefined, 
           password,
-          username: email.split('@')[0]
+          username: email.split('@')[0],
+          type: "student",
         })
       }
 
-      if (!result.success) {
-        setError(result.message)
-        setLoading(false)
-        return
-      }
+  if (!result.success) {
+    // ✅ FIXED: Extract message properly
+    const errorMessage = typeof result.message === 'string' 
+      ? result.message 
+      : result.message?.msg || 'An error occurred. Please try again.'
+    setError(errorMessage)
+    setLoading(false)
+    return
+  }
 
       // Success!
       if (result.user) {

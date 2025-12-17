@@ -1,137 +1,141 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import FormInput from '@/components/FormInput'
-import FormSelect from '@/components/FormSelect'
-import { ArrowRight, ArrowLeft, Sparkles, CheckCircle2, Lock } from 'lucide-react'
+import { useState, useEffect } from "react";
+import FormInput from "@/components/FormInput";
+import FormSelect from "@/components/FormSelect";
+import { ArrowRight, Sparkles, CheckCircle2, Lock, Save } from "lucide-react";
 
 interface PersonalDetailsProps {
-  onNext: () => void
-  onBack?: () => void
-  data: PersonalFormData
-  onDataChange: (data: PersonalFormData) => void
-  prefillData?: PrefillData | null
+  onNext: () => void;
+  onBack?: () => void;
+  data: PersonalFormData;
+  onDataChange: (data: PersonalFormData) => void;
+  prefillData?: PrefillData | null;
 }
 
 export interface PrefillData {
-  fullName: string
-  fatherName: string
-  dob: string
-  gender: string
-  address: string
-  city: string
-  state: string
-  pincode: string
-  phone: string
-  aadhaarNumber: string
+  fullName: string;
+  fatherName: string;
+  dob: string;
+  gender: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  aadhaarNumber: string;
 }
 
 export interface PersonalFormData {
-  fullName: string
-  fatherName: string
-  motherName: string
-  maritalStatus: string
-  dobYear: string
-  dobMonth: string
-  dobDay: string
-  gender: string
-  aadhaarNumber: string
-  motherTongue: string
-  permanentMark1: string
-  permanentMark2: string
-  tribe: string
-  stCertificateNumber: string
-  certificateIssueDate: string
-  casteValidityCertNumber: string
-  casteValidityIssueDate: string
-  address: string
-  city: string
-  state: string
-  pincode: string
-  phone: string
-  email: string
+  fullName: string;
+  fatherName: string;
+  motherName: string;
+  maritalStatus: string;
+  dobYear: string;
+  dobMonth: string;
+  dobDay: string;
+  gender: string;
+  aadhaarNumber: string;
+  motherTongue: string;
+  permanentMark1: string;
+  permanentMark2: string;
+  tribe: string;
+  stCertificateNumber: string;
+  certificateIssueDate: string;
+  casteValidityCertNumber: string;
+  casteValidityIssueDate: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  email: string;
 }
 
 const maritalStatusOptions = [
-  { value: 'single', label: 'Single' },
-  { value: 'married', label: 'Married' },
-  { value: 'divorced', label: 'Divorced' },
-  { value: 'widowed', label: 'Widowed' },
-]
+  { value: "single", label: "Single" },
+  { value: "married", label: "Married" },
+  { value: "divorced", label: "Divorced" },
+  { value: "widowed", label: "Widowed" },
+];
 
 const genderOptions = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
-]
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
 
 const tribeOptions = [
-  { value: 'arrakh', label: 'Arrakh' },
-  { value: 'bhil', label: 'Bhil' },
-  { value: 'gond', label: 'Gond' },
-  { value: 'halba', label: 'Halba' },
-  { value: 'katkari', label: 'Katkari' },
-  { value: 'kolam', label: 'Kolam' },
-  { value: 'korku', label: 'Korku' },
-  { value: 'mahadev_koli', label: 'Mahadev Koli' },
-  { value: 'oraon', label: 'Oraon' },
-  { value: 'pardhi', label: 'Pardhi' },
-  { value: 'thakur', label: 'Thakur' },
-  { value: 'varli', label: 'Varli' },
-  { value: 'other', label: 'Other' },
-]
+  { value: "arrakh", label: "Arrakh" },
+  { value: "bhil", label: "Bhil" },
+  { value: "gond", label: "Gond" },
+  { value: "halba", label: "Halba" },
+  { value: "katkari", label: "Katkari" },
+  { value: "kolam", label: "Kolam" },
+  { value: "korku", label: "Korku" },
+  { value: "mahadev_koli", label: "Mahadev Koli" },
+  { value: "oraon", label: "Oraon" },
+  { value: "pardhi", label: "Pardhi" },
+  { value: "thakur", label: "Thakur" },
+  { value: "varli", label: "Varli" },
+  { value: "other", label: "Other" },
+];
 
 const stateOptions = [
-  { value: 'maharashtra', label: 'Maharashtra' },
-  { value: 'karnataka', label: 'Karnataka' },
-  { value: 'tamil_nadu', label: 'Tamil Nadu' },
-  { value: 'gujarat', label: 'Gujarat' },
-  { value: 'rajasthan', label: 'Rajasthan' },
-  { value: 'west_bengal', label: 'West Bengal' },
-  { value: 'uttar_pradesh', label: 'Uttar Pradesh' },
-  { value: 'madhya_pradesh', label: 'Madhya Pradesh' },
-  { value: 'delhi', label: 'Delhi' },
-  { value: 'telangana', label: 'Telangana' },
-]
+  { value: "maharashtra", label: "Maharashtra" },
+  { value: "karnataka", label: "Karnataka" },
+  { value: "tamil_nadu", label: "Tamil Nadu" },
+  { value: "gujarat", label: "Gujarat" },
+  { value: "rajasthan", label: "Rajasthan" },
+  { value: "west_bengal", label: "West Bengal" },
+  { value: "uttar_pradesh", label: "Uttar Pradesh" },
+  { value: "madhya_pradesh", label: "Madhya Pradesh" },
+  { value: "delhi", label: "Delhi" },
+  { value: "telangana", label: "Telangana" },
+];
 
 const years = Array.from({ length: 50 }, (_, i) => ({
   value: String(2006 - i),
   label: String(2006 - i),
-}))
+}));
 
 const months = [
-  { value: '01', label: 'January' },
-  { value: '02', label: 'February' },
-  { value: '03', label: 'March' },
-  { value: '04', label: 'April' },
-  { value: '05', label: 'May' },
-  { value: '06', label: 'June' },
-  { value: '07', label: 'July' },
-  { value: '08', label: 'August' },
-  { value: '09', label: 'September' },
-  { value: '10', label: 'October' },
-  { value: '11', label: 'November' },
-  { value: '12', label: 'December' },
-]
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
+];
 
 const days = Array.from({ length: 31 }, (_, i) => ({
-  value: String(i + 1).padStart(2, '0'),
+  value: String(i + 1).padStart(2, "0"),
   label: String(i + 1),
-}))
+}));
 
-export default function PersonalDetails({ onNext, onBack, data, onDataChange, prefillData }: PersonalDetailsProps) {
-  // Validation removed - errors state kept for potential future use
-  const [errors] = useState<Partial<Record<keyof PersonalFormData, string>>>({})
-  const [hasPrefilledData, setHasPrefilledData] = useState(false)
+export default function PersonalDetails({
+  onNext,
+  onBack,
+  data,
+  onDataChange,
+  prefillData,
+}: PersonalDetailsProps) {
+  const [hasPrefilledData, setHasPrefilledData] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
-  // Auto-fill data from Aadhar verification
   useEffect(() => {
     if (prefillData && !hasPrefilledData) {
-      // Parse the date string (YYYY-MM-DD format)
-      const dobParts = prefillData.dob.split('-')
-      const year = dobParts[0] || ''
-      const month = dobParts[1] || ''
-      const day = dobParts[2] || ''
+      const dobParts = prefillData.dob.split("-");
+      const year = dobParts[0] || "";
+      const month = dobParts[1] || "";
+      const day = dobParts[2] || "";
 
       onDataChange({
         ...data,
@@ -147,42 +151,136 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
         state: prefillData.state,
         pincode: prefillData.pincode,
         phone: prefillData.phone,
-      })
-      setHasPrefilledData(true)
+      });
+      setHasPrefilledData(true);
     }
-  }, [prefillData, hasPrefilledData, data, onDataChange])
+  }, [prefillData, hasPrefilledData, data, onDataChange]);
 
-  const handleChange = (field: keyof PersonalFormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    onDataChange({ ...data, [field]: e.target.value })
-  }
+  const handleChange =
+    (field: keyof PersonalFormData) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      onDataChange({ ...data, [field]: e.target.value });
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // No validation required - user can proceed without filling all fields
-    onNext()
-  }
+  // ✅ FIXED: Proper field mapping with all fields included
+  // ✅ FIXED: split APIs correctly (NO behavior change)
+  const saveToDatabase = async () => {
+    setIsSaving(true);
+    setSaveMessage("");
 
-  // Check if field was auto-filled from Aadhar
+    try {
+      const token = localStorage.getItem("enroll_iq_token");
+      if (!token) {
+        setSaveMessage("Please login to save your details");
+        setIsSaving(false);
+        return;
+      }
+
+      const API = process.env.NEXT_PUBLIC_API_URL;
+
+      /* ================= 1️⃣ PERSONAL DETAILS ================= */
+      const personalPayload = {
+        full_name: data.fullName || "",
+        father_name: data.fatherName || "",
+        mother_name: data.motherName || "",
+        marital_status: data.maritalStatus || "",
+        gender: data.gender || "",
+        mother_tongue: data.motherTongue || "",
+        dob_year: data.dobYear || "",
+        dob_month: data.dobMonth || "",
+        dob_day: data.dobDay || "",
+        aadhaar_number: data.aadhaarNumber || "",
+        permanent_mark1: data.permanentMark1 || "",
+        permanent_mark2: data.permanentMark2 || "",
+        address: data.address || "",
+        city: data.city || "",
+        state: data.state || "",
+        pincode: data.pincode || "",
+        phone: data.phone || "",
+        email: data.email || "",
+      };
+
+      await fetch(`${API}/api/application/personal-details`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(personalPayload),
+      });
+
+      /* ================= 2️⃣ CASTE / TRIBE ================= */
+      const castePayload = {
+        tribe: data.tribe || "",
+        st_certificate_number: data.stCertificateNumber || "",
+        certificate_issue_date: data.certificateIssueDate || "",
+        caste_validity_cert_number: data.casteValidityCertNumber || "",
+        caste_validity_issue_date: data.casteValidityIssueDate || "",
+      };
+
+      await fetch(`${API}/api/application/caste-tribe`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(castePayload),
+      });
+
+      setSaveMessage("✓ Details saved successfully!");
+      setTimeout(() => setSaveMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ Error saving details:", error);
+      setSaveMessage("Error saving details. Please check your connection.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await saveToDatabase();
+    onNext();
+  };
+
   const isAadharField = (field: keyof PersonalFormData) => {
     const aadharFields: (keyof PersonalFormData)[] = [
-      'fullName', 'fatherName', 'dobYear', 'dobMonth', 'dobDay', 
-      'gender', 'aadhaarNumber', 'address', 'city', 'state', 'pincode', 'phone'
-    ]
-    return !!prefillData && aadharFields.includes(field)
-  }
+      "fullName",
+      "fatherName",
+      "dobYear",
+      "dobMonth",
+      "dobDay",
+      "gender",
+      "aadhaarNumber",
+      "address",
+      "city",
+      "state",
+      "pincode",
+      "phone",
+    ];
+    return !!prefillData && aadharFields.includes(field);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="animate-fade-in">
-      {/* Section Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="h-8 w-1.5 bg-gradient-to-b from-red-500 to-pink-500 rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">Personal Details</h2>
         <Sparkles className="w-5 h-5 text-pink-500" />
       </div>
 
-      {/* Aadhar Auto-fill Notice */}
+      {saveMessage && (
+        <div
+          className={`mb-4 p-3 rounded-lg ${
+            saveMessage.includes("successfully")
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          }`}
+        >
+          {saveMessage}
+        </div>
+      )}
+
       {prefillData && (
         <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4">
           <div className="flex items-center gap-3">
@@ -190,16 +288,18 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               <CheckCircle2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-green-800">Aadhaar Data Auto-filled</h3>
+              <h3 className="font-semibold text-green-800">
+                Aadhaar Data Auto-filled
+              </h3>
               <p className="text-sm text-green-700">
-                Fields marked with <Lock className="w-3 h-3 inline" /> are verified from your Aadhaar and cannot be edited.
+                Fields marked with <Lock className="w-3 h-3 inline" /> are
+                verified from your Aadhaar and cannot be edited.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Basic Information */}
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="relative">
@@ -208,10 +308,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="fullName"
               placeholder="Enter your full name"
               value={data.fullName}
-              onChange={handleChange('fullName')}
-              disabled={isAadharField('fullName')}
+              onChange={handleChange("fullName")}
+              disabled={isAadharField("fullName")}
             />
-            {isAadharField('fullName') && (
+            {isAadharField("fullName") && (
               <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
             )}
           </div>
@@ -221,10 +321,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="fatherName"
               placeholder="Enter father's name"
               value={data.fatherName}
-              onChange={handleChange('fatherName')}
-              disabled={isAadharField('fatherName')}
+              onChange={handleChange("fatherName")}
+              disabled={isAadharField("fatherName")}
             />
-            {isAadharField('fatherName') && (
+            {isAadharField("fatherName") && (
               <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
             )}
           </div>
@@ -236,14 +336,14 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
             name="motherName"
             placeholder="Enter mother's name"
             value={data.motherName}
-            onChange={handleChange('motherName')}
+            onChange={handleChange("motherName")}
           />
           <FormSelect
             label="Marital Status"
             name="maritalStatus"
             options={maritalStatusOptions}
             value={data.maritalStatus}
-            onChange={handleChange('maritalStatus')}
+            onChange={handleChange("maritalStatus")}
           />
         </div>
 
@@ -251,7 +351,9 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
               Date of Birth
-              {isAadharField('dobYear') && <Lock className="w-3 h-3 inline ml-2 text-green-500" />}
+              {isAadharField("dobYear") && (
+                <Lock className="w-3 h-3 inline ml-2 text-green-500" />
+              )}
             </label>
             <div className="grid grid-cols-3 gap-3">
               <FormSelect
@@ -259,27 +361,27 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                 name="dobYear"
                 options={years}
                 value={data.dobYear}
-                onChange={handleChange('dobYear')}
+                onChange={handleChange("dobYear")}
                 placeholder="Year"
-                disabled={isAadharField('dobYear')}
+                disabled={isAadharField("dobYear")}
               />
               <FormSelect
                 label=""
                 name="dobMonth"
                 options={months}
                 value={data.dobMonth}
-                onChange={handleChange('dobMonth')}
+                onChange={handleChange("dobMonth")}
                 placeholder="Month"
-                disabled={isAadharField('dobMonth')}
+                disabled={isAadharField("dobMonth")}
               />
               <FormSelect
                 label=""
                 name="dobDay"
                 options={days}
                 value={data.dobDay}
-                onChange={handleChange('dobDay')}
+                onChange={handleChange("dobDay")}
                 placeholder="Day"
-                disabled={isAadharField('dobDay')}
+                disabled={isAadharField("dobDay")}
               />
             </div>
           </div>
@@ -289,10 +391,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="gender"
               options={genderOptions}
               value={data.gender}
-              onChange={handleChange('gender')}
-              disabled={isAadharField('gender')}
+              onChange={handleChange("gender")}
+              disabled={isAadharField("gender")}
             />
-            {isAadharField('gender') && (
+            {isAadharField("gender") && (
               <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
             )}
           </div>
@@ -305,10 +407,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="aadhaarNumber"
               placeholder="Enter 12-digit Aadhaar number"
               value={data.aadhaarNumber}
-              onChange={handleChange('aadhaarNumber')}
-              disabled={isAadharField('aadhaarNumber')}
+              onChange={handleChange("aadhaarNumber")}
+              disabled={isAadharField("aadhaarNumber")}
             />
-            {isAadharField('aadhaarNumber') && (
+            {isAadharField("aadhaarNumber") && (
               <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
             )}
           </div>
@@ -317,15 +419,16 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
             name="motherTongue"
             placeholder="Enter mother tongue"
             value={data.motherTongue}
-            onChange={handleChange('motherTongue')}
+            onChange={handleChange("motherTongue")}
           />
         </div>
 
-        {/* Tribal Information Section */}
         <div className="pt-6 border-t border-gray-200">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-6 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
-            <h3 className="text-lg font-semibold text-gray-800">Tribal Information</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Tribal Information
+            </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -334,21 +437,21 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="permanentMark1"
               placeholder="Permanent Visible Mark 1"
               value={data.permanentMark1}
-              onChange={handleChange('permanentMark1')}
+              onChange={handleChange("permanentMark1")}
             />
             <FormInput
               label="Permanent Visible Mark 2"
               name="permanentMark2"
               placeholder="Permanent Visible Mark 2"
               value={data.permanentMark2}
-              onChange={handleChange('permanentMark2')}
+              onChange={handleChange("permanentMark2")}
             />
             <FormSelect
               label="Select Tribe"
               name="tribe"
               options={tribeOptions}
               value={data.tribe}
-              onChange={handleChange('tribe')}
+              onChange={handleChange("tribe")}
             />
           </div>
 
@@ -358,14 +461,14 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="stCertificateNumber"
               placeholder="ST Certificate Number"
               value={data.stCertificateNumber}
-              onChange={handleChange('stCertificateNumber')}
+              onChange={handleChange("stCertificateNumber")}
             />
             <FormInput
               label="Certificate Issue Date"
               name="certificateIssueDate"
               type="date"
               value={data.certificateIssueDate}
-              onChange={handleChange('certificateIssueDate')}
+              onChange={handleChange("certificateIssueDate")}
             />
           </div>
 
@@ -375,23 +478,24 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
               name="casteValidityCertNumber"
               placeholder="Caste Validity Number"
               value={data.casteValidityCertNumber}
-              onChange={handleChange('casteValidityCertNumber')}
+              onChange={handleChange("casteValidityCertNumber")}
             />
             <FormInput
               label="Caste Validity Issue Date"
               name="casteValidityIssueDate"
               type="date"
               value={data.casteValidityIssueDate}
-              onChange={handleChange('casteValidityIssueDate')}
+              onChange={handleChange("casteValidityIssueDate")}
             />
           </div>
         </div>
 
-        {/* Contact Information Section */}
         <div className="pt-6 border-t border-gray-200">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
-            <h3 className="text-lg font-semibold text-gray-800">Contact Information</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Contact Information
+            </h3>
             {prefillData && <Lock className="w-4 h-4 text-green-500" />}
           </div>
 
@@ -402,10 +506,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                 name="address"
                 placeholder="Enter your full address"
                 value={data.address}
-                onChange={handleChange('address')}
-                disabled={isAadharField('address')}
+                onChange={handleChange("address")}
+                disabled={isAadharField("address")}
               />
-              {isAadharField('address') && (
+              {isAadharField("address") && (
                 <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
               )}
             </div>
@@ -417,10 +521,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                   name="city"
                   placeholder="Enter city"
                   value={data.city}
-                  onChange={handleChange('city')}
-                  disabled={isAadharField('city')}
+                  onChange={handleChange("city")}
+                  disabled={isAadharField("city")}
                 />
-                {isAadharField('city') && (
+                {isAadharField("city") && (
                   <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
                 )}
               </div>
@@ -430,10 +534,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                   name="state"
                   options={stateOptions}
                   value={data.state}
-                  onChange={handleChange('state')}
-                  disabled={isAadharField('state')}
+                  onChange={handleChange("state")}
+                  disabled={isAadharField("state")}
                 />
-                {isAadharField('state') && (
+                {isAadharField("state") && (
                   <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
                 )}
               </div>
@@ -443,10 +547,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                   name="pincode"
                   placeholder="Enter pincode"
                   value={data.pincode}
-                  onChange={handleChange('pincode')}
-                  disabled={isAadharField('pincode')}
+                  onChange={handleChange("pincode")}
+                  disabled={isAadharField("pincode")}
                 />
-                {isAadharField('pincode') && (
+                {isAadharField("pincode") && (
                   <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
                 )}
               </div>
@@ -460,10 +564,10 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                   type="tel"
                   placeholder="Enter phone number"
                   value={data.phone}
-                  onChange={handleChange('phone')}
-                  disabled={isAadharField('phone')}
+                  onChange={handleChange("phone")}
+                  disabled={isAadharField("phone")}
                 />
-                {isAadharField('phone') && (
+                {isAadharField("phone") && (
                   <Lock className="absolute right-3 top-9 w-4 h-4 text-green-500" />
                 )}
               </div>
@@ -473,35 +577,24 @@ export default function PersonalDetails({ onNext, onBack, data, onDataChange, pr
                 type="email"
                 placeholder="Enter email address"
                 value={data.email}
-                onChange={handleChange('email')}
+                onChange={handleChange("email")}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="mt-10 flex items-center justify-between">
-        {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
-        ) : (
-          <div />
-        )}
+      <div className="mt-10 flex items-center justify-between gap-4">
+        <div />
         <button
           type="submit"
-          className="group flex items-center gap-3 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 btn-shine"
+          disabled={isSaving}
+          className="group flex items-center gap-3 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Save & Continue
+          {isSaving ? "Saving..." : "Save & Continue"}
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
     </form>
-  )
+  );
 }
