@@ -215,6 +215,7 @@ export async function verifyForm16(file: File): Promise<VerificationResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/verify/form16`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData,
     });
 
@@ -248,6 +249,7 @@ export async function verifyCasteCertificate(
       `${API_BASE_URL}/api/verify/caste-certificate`,
       {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       }
     );
@@ -282,6 +284,7 @@ export async function verifyMarksheet(
   try {
     const response = await fetch(`${API_BASE_URL}/api/verify/marksheet`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData,
     });
 
@@ -311,6 +314,7 @@ export async function uploadMarksheet(
   try {
     const response = await fetch(`${API_BASE_URL}/api/upload/marksheet`, {
       method: "POST",
+      headers: getAuthHeaders(),
       body: formData,
     });
 
