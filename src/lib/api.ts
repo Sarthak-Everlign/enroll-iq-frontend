@@ -378,70 +378,38 @@ export interface LoginRequest {
 
 export interface ApplicationData {
   id: number;
-  user_id: number;
+  user_id: string;
+  application_id: string;
   current_step: number;
-  personal_details: {
-    full_name: string | null;
-    father_name: string | null;
-    date_of_birth: string | null;
-    gender: string | null;
-    address: string | null;
-    city: string | null;
-    state: string | null;
-    pincode: string | null;
-    phone: string | null;
-    email: string | null;
-    nationality: string | null;
-    category: string | null;
-  };
-  documents: {
-    marksheet_10th: {
-      file: string | null;
-      percentage: number | null;
-      verified: boolean;
-      eligible: boolean | null;
-      data: Record<string, unknown> | null;
-    };
-    marksheet_12th: {
-      file: string | null;
-      percentage: number | null;
-      verified: boolean;
-      eligible: boolean | null;
-      data: Record<string, unknown> | null;
-    };
-    graduation: {
-      file: string | null;
-      percentage: number | null;
-      verified: boolean;
-      eligible: boolean | null;
-      data: Record<string, unknown> | null;
-    };
-    form16: {
-      file: string | null;
-      verified: boolean;
-      income: number | null;
-      eligible: boolean | null;
-    };
-    caste_certificate: {
-      file: string | null;
-      verified: boolean;
-      category: string | null;
-    };
-  };
-  university: {
-    university_id: number | null;
-    university_name: string | null;
-    university_country: string | null;
-    university_rank: number | null;
-    course_name: string | null;
-    course_degree_type: string | null;
-    total_fees_usd: number | null;
-    total_fees_inr: number | null;
-    fees_page_url: string | null;
-    fees_verified: boolean;
-    fees_verification_status: string | null;
-    offer_letter_file: string | null;
-  };
+  
+  aadhaar_number: string | null;
+  aadhaar_verified: boolean;
+  pan_number: string | null;
+  pan_verified: boolean;
+
+  full_name: string | null;
+  father_name: string | null;
+  mother_name: string | null;
+  marital_status: string | null;
+  dob_day: string | null;
+  dob_month: string | null;
+  dob_year: string | null;
+  gender: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  phone: string | null;
+  email: string | null;
+  mother_tongue: string | null;
+  permanent_mark1: string | null;
+  permanent_mark2: string | null;
+  tribe: string | null;
+  st_certificate_number: string | null;
+  certificate_issue_date: string | null;
+  caste_validity_cert_number: string | null;
+  caste_validity_issue_date: string | null;
+  
   application_status: string;
   submitted_at: string | null;
   created_at: string | null;
@@ -682,7 +650,30 @@ export async function getApplication(): Promise<ApplicationResponse> {
 }
 
 export async function updatePersonalDetails(
-  data: Partial<ApplicationData["personal_details"]>
+  data: {
+    full_name?: string;
+    father_name?: string;
+    mother_name?: string;
+    marital_status?: string;
+    dob_day?: string;
+    dob_month?: string;
+    dob_year?: string;
+    gender?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    phone?: string;
+    email?: string;
+    mother_tongue?: string;
+    permanent_mark1?: string;
+    permanent_mark2?: string;
+    tribe?: string;
+    st_certificate_number?: string;
+    certificate_issue_date?: string;
+    caste_validity_cert_number?: string;
+    caste_validity_issue_date?: string;
+  }
 ): Promise<ApplicationResponse> {
   try {
     const response = await fetch(
@@ -725,7 +716,20 @@ export async function updateDocuments(
 }
 
 export async function updateUniversityDetails(
-  data: Partial<ApplicationData["university"]>
+  data: {
+    university_id?: number;
+    university_name?: string;
+    university_country?: string;
+    university_rank?: number;
+    course_name?: string;
+    course_degree_type?: string;
+    total_fees_usd?: number;
+    total_fees_inr?: number;
+    fees_page_url?: string;
+    fees_verified?: boolean;
+    fees_verification_status?: string;
+    offer_letter_file?: string;
+  }
 ): Promise<ApplicationResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/application/university`, {
@@ -855,5 +859,43 @@ export async function loadSavedPersonalDetails(): Promise<{
   } catch (error) {
     console.error('Error loading saved details:', error);
     return { success: false, message: 'Failed to connect to server' };
+  }
+}
+
+export async function updateAadharPanVerification(data: {
+  aadhaar_number: string;
+  aadhaar_verified: boolean;
+  pan_number: string;
+  pan_verified: boolean;
+  // Add root-level fields (matching your database structure)
+  full_name?: string;
+  father_name?: string;
+  dob_day?: string;
+  dob_month?: string;
+  dob_year?: string;
+  gender?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  phone?: string;
+}): Promise<ApplicationResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/application/verification`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    return await response.json();
+  } catch (error) {
+    console.error("Verification update error:", error);
+    return { success: false, message: "Failed to update verification" };
   }
 }

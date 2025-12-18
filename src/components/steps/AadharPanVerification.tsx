@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import testData from "@/data/testData.json";
+import { updateAadharPanVerification, getApplication } from "@/lib/api";
 
 interface AadharPanVerificationProps {
   onNext: (aadharDetails: AadharDetails | null) => void;
@@ -60,6 +61,52 @@ export default function AadharPanVerification({
   const validAadhars = testData.aadharData.validAadharNumbers;
   const validPans = testData.panData.validPanNumbers;
   const testOtp = testData.aadharData.aadharOtp;
+
+useEffect(() => {
+  const loadVerificationData = async () => {
+    
+    const res = await getApplication();    
+    if (!res.success || !res.data) {
+      return;
+    }
+
+    const app = res.data;
+    if (app.aadhaar_verified && app.pan_verified) {
+      
+      setAadharNumber(formatAadhar(app.aadhaar_number ?? ""));
+      setPanNumber(app.pan_number ?? "");
+      setAadharValid(true);
+      setPanValid(true);
+
+      const dob = app.dob_day && app.dob_month && app.dob_year
+        ? `${app.dob_day}/${app.dob_month}/${app.dob_year}`
+        : "";
+
+      const details: AadharDetails = {
+        aadharNumber: app.aadhaar_number ?? "",
+        panNumber: app.pan_number ?? "",
+        fullName: app.full_name ?? "",
+        fatherName: app.father_name ?? "",
+        dob: dob,
+        gender: app.gender ?? "",
+        address: app.address ?? "",
+        city: app.city ?? "",
+        state: app.state ?? "",
+        pincode: app.pincode ?? "",
+        phone: app.phone ?? "",
+        photo: "",
+      };
+
+      setVerifiedDetails(details);
+
+      setStep("verified");
+    } else {
+      console.log("⚠️ Not both verified yet");
+    }
+  };
+
+  loadVerificationData();
+}, []);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -140,45 +187,65 @@ export default function AadharPanVerification({
     setCountdown(30);
   };
 
-  const handleVerifyAadharOtp = async () => {
-    setError("");
+const handleVerifyAadharOtp = async () => {
+  setError("");
 
-    if (aadharOtp !== testOtp) {
-      setError(`Invalid OTP. Use: ${testOtp}`);
-      return;
-    }
+  if (aadharOtp !== testOtp) {
+    setError(`Invalid OTP. Use: ${testOtp}`);
+    return;
+  }
 
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  setLoading(true);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Get verified details from test data
-    const cleanedAadhar = aadharNumber.replace(/\s/g, "");
-    const aadharDetails =
-      testData.aadharData.aadharDetails[
-        cleanedAadhar as keyof typeof testData.aadharData.aadharDetails
-      ];
+  // Get verified details from test data
+  const cleanedAadhar = aadharNumber.replace(/\s/g, "");
+  const aadharDetails =
+    testData.aadharData.aadharDetails[
+      cleanedAadhar as keyof typeof testData.aadharData.aadharDetails
+    ];
 
-    if (aadharDetails) {
-      const details: AadharDetails = {
-        aadharNumber: cleanedAadhar,
-        panNumber: panNumber,
-        fullName: aadharDetails.fullName,
-        fatherName: aadharDetails.fatherName,
-        dob: aadharDetails.dob,
-        gender: aadharDetails.gender,
-        address: aadharDetails.address,
-        city: aadharDetails.city,
-        state: aadharDetails.state,
-        pincode: aadharDetails.pincode,
-        phone: aadharDetails.phone,
-        photo: aadharDetails.photo,
-      };
-      setVerifiedDetails(details);
-    }
+  if (aadharDetails) {
+    const details: AadharDetails = {
+      aadharNumber: cleanedAadhar,
+      panNumber: panNumber,
+      fullName: aadharDetails.fullName,
+      fatherName: aadharDetails.fatherName,
+      dob: aadharDetails.dob,
+      gender: aadharDetails.gender,
+      address: aadharDetails.address,
+      city: aadharDetails.city,
+      state: aadharDetails.state,
+      pincode: aadharDetails.pincode,
+      phone: aadharDetails.phone,
+      photo: aadharDetails.photo,
+    };
+    setVerifiedDetails(details);
+    
+    const dobParts = aadharDetails.dob.split('/');
+    
+    await updateAadharPanVerification({
+      aadhaar_number: cleanedAadhar,
+      aadhaar_verified: true,
+      pan_number: panNumber,
+      pan_verified: true,
+      full_name: aadharDetails.fullName,
+      father_name: aadharDetails.fatherName,
+      dob_day: dobParts[0] || "",
+      dob_month: dobParts[1] || "",
+      dob_year: dobParts[2] || "",
+      gender: aadharDetails.gender,
+      address: aadharDetails.address,
+      city: aadharDetails.city,
+      state: aadharDetails.state,
+      pincode: aadharDetails.pincode,
+      phone: aadharDetails.phone,
+    });
+  }
 
-    setLoading(false);
-    setStep("verified");
-  };
+  setLoading(false);
+  setStep("verified");
+};
 
   const handleContinue = () => {
     if (verifiedDetails) {
