@@ -1,4 +1,3 @@
-// lib/pdfGenerator.ts
 import { jsPDF } from "jspdf";
 
 interface PDFData {
