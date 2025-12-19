@@ -91,12 +91,6 @@ export interface VerificationResponse {
   is_eligible?: boolean | null;
 }
 
-export interface FeeItem {
-  field: string;
-  amount: number;
-  amount_inr: number;
-}
-
 // ============== API Functions ==============
 
 export async function fetchUniversities(
@@ -414,6 +408,7 @@ export interface ApplicationData {
   submitted_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  is_submitted?: boolean;
 }
 
 export interface ApplicationResponse {

@@ -17,7 +17,7 @@ import {
   getApplication,
   updateApplicationStep,
 } from '@/lib/api'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 
 const initialPersonalData: PersonalFormData = {
   fullName: '',
@@ -84,6 +84,7 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
+  const [isApplicationSubmitted, setIsApplicationSubmitted] = useState(false)
   
   const [aadharDetails, setAadharDetails] = useState<AadharDetails | null>(null)
   const [personalData, setPersonalData] = useState<PersonalFormData>(initialPersonalData)
@@ -122,10 +123,11 @@ export default function Home() {
     const response = await getApplication()
     
     if (response.success && response.data) {
-      // The actual response.data has flat structure (from ApplicationDB.to_dict())
-      const app = response.data as any // Use any to access flat structure
-      
-      console.log('✅ Loaded application data:', app)
+      const app = response.data as any
+            
+      if (app.is_submitted || app.isSubmitted) {
+        setIsApplicationSubmitted(true)
+      }
       
       // Restore step
       if (app.current_step) {
@@ -174,6 +176,7 @@ export default function Home() {
     setIsLoggedIn(false)
     setUserData(null)
     setCurrentStep(1)
+    setIsApplicationSubmitted(false)
     setAadharDetails(null)
     setPersonalData(initialPersonalData)
     setKycData(null)
@@ -272,6 +275,13 @@ export default function Home() {
           <p className="text-gray-400 max-w-xl mx-auto text-sm lg:text-base">
             Complete the steps to submit your scholarship application.
           </p>
+          
+          {isApplicationSubmitted && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/50 text-green-300 text-sm font-medium">
+              <CheckCircle2 className="w-4 h-4" />
+              Application Already Submitted
+            </div>
+          )}
         </div>
       </div>
 
@@ -326,6 +336,8 @@ export default function Home() {
                 onDataChange={handleUniversityDataChange}
                 personalData={personalData}
                 documentsData={documentsData}
+                isApplicationSubmitted={isApplicationSubmitted}
+                onSubmissionSuccess={() => setIsApplicationSubmitted(true)}
               />
             )}
           </div>

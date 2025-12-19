@@ -28,6 +28,7 @@ import {
   fetchUniversities,
   scrapeCourses,
   verifyFees,
+  submitApplication,
   type University,
   type FeeVerificationResponse,
   type FeeItem,
@@ -41,6 +42,8 @@ interface UniversityDetailsProps {
   onDataChange: (data: UniversityFormData) => void;
   personalData?: any;  // NEW
   documentsData?: any; // NEW
+  isApplicationSubmitted?: boolean; 
+  onSubmissionSuccess?: () => void;  
 }
 
 export interface UniversityFormData {
@@ -121,6 +124,8 @@ export default function UniversityDetails({
   onDataChange,
   personalData,
   documentsData,
+  isApplicationSubmitted,
+  onSubmissionSuccess,
 }: UniversityDetailsProps) {
   const [universities, setUniversities] = useState<University[]>([]);
   const [loadingUniversities, setLoadingUniversities] = useState(true);
@@ -429,19 +434,38 @@ export default function UniversityDetails({
   }
 };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isApplicationSubmitted) {
+      alert("This application has already been submitted and cannot be resubmitted.");
+      return;
+    }
 
     if (!canSubmit) {
       return;
     }
 
-    if (data.verificationResult?.status === "accepted") {
-      alert("Application submitted successfully! Fees have been verified.");
-    } else {
-      alert(
-        "Application submitted for manual review. Our team will verify the fees manually."
-      );
+    try {
+      const submitResult = await submitApplication();
+      
+      if (!submitResult.success) {
+        alert(submitResult.message || "Failed to submit application");
+        return;
+      }
+      
+      if (data.verificationResult?.status === "accepted") {
+        alert("Application submitted successfully! Fees have been verified.");
+      } else {
+        alert(
+          "Application submitted for manual review. Our team will verify the fees manually."
+        );
+      }
+      
+      onSubmissionSuccess?.();
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit application. Please try again.");
     }
   };
 
@@ -1192,7 +1216,21 @@ export default function UniversityDetails({
 
       {/* Summary Card */}
       {data.universityId && data.course && data.totalFees && (
-        <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-gray-900 to-slate-800 text-white">
+        <div className={`mt-8 p-6 rounded-2xl ${
+          isApplicationSubmitted
+            ? "bg-gradient-to-br from-green-900 to-emerald-800 text-white"
+            : "bg-gradient-to-br from-gray-900 to-slate-800 text-white"
+        }`}>
+
+          {isApplicationSubmitted && (
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-green-700">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span className="font-semibold text-green-300">
+                This application has been submitted
+              </span>
+            </div>
+          )}
+          
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             Application Summary
@@ -1228,7 +1266,9 @@ export default function UniversityDetails({
             <div className="flex items-center gap-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  result?.status === "accepted"
+                  isApplicationSubmitted
+                    ? "bg-green-400"
+                    : result?.status === "accepted"
                     ? "bg-emerald-400"
                     : result?.status === "rejected"
                     ? "bg-red-400"
@@ -1236,7 +1276,9 @@ export default function UniversityDetails({
                 }`}
               />
               <p className="text-sm">
-                {result?.status === "accepted"
+                {isApplicationSubmitted
+                  ? "Application successfully submitted on " + (data.verificationResult?.status === "accepted" ? "automatic verification" : "manual review")
+                  : result?.status === "accepted"
                   ? "Fees verified by AI - Ready to submit"
                   : result?.status === "rejected"
                   ? "Fee verification failed - Please correct and retry"
@@ -1253,7 +1295,8 @@ export default function UniversityDetails({
   <button
     type="button"
     onClick={onBack}
-    className="group flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
+    disabled={isApplicationSubmitted}
+    className="group flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
   >
     <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
     Back
@@ -1263,7 +1306,7 @@ export default function UniversityDetails({
     <button
       type="button"
       onClick={handleDownloadPDF}
-      disabled={isDownloadingPDF}
+      disabled={isDownloadingPDF || isApplicationSubmitted}
       className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
     >
       {isDownloadingPDF ? (
@@ -1279,23 +1322,29 @@ export default function UniversityDetails({
       )}
     </button>
 
-    {/* Submit Button */}
-    <button
-      type="submit"
-      disabled={!canSubmit}
-      className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
-        canSubmit
-          ? result?.status === "accepted"
-            ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-            : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-          : "bg-gray-200 text-gray-400 cursor-not-allowed"
-      }`}
-    >
-      <CheckCircle2 className="w-5 h-5" />
-      {result?.status === "accepted"
-        ? "Submit Application"
-        : "Submit for Manual Review"}
-    </button>
+    {isApplicationSubmitted ? (
+      <div className="flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+        <CheckCircle2 className="w-5 h-5" />
+        Already Submitted
+      </div>
+    ) : (
+      <button
+        type="submit"
+        disabled={!canSubmit}
+        className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+          canSubmit
+            ? result?.status === "accepted"
+              ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+              : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+        }`}
+      >
+        <CheckCircle2 className="w-5 h-5" />
+        {result?.status === "accepted"
+          ? "Submit Application"
+          : "Submit for Manual Review"}
+      </button>
+    )}
   </div>
 </div>
     </form>
