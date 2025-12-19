@@ -324,6 +324,8 @@ export default function Home() {
                 onBack={handleBack}
                 data={universityData}
                 onDataChange={handleUniversityDataChange}
+                personalData={personalData}
+                documentsData={documentsData}
               />
             )}
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SearchableSelect from "@/components/SearchableSelect";
 import FormInput from "@/components/FormInput";
 import FileUpload from "@/components/FileUpload";
+import { generateApplicationPDF } from "@/lib/pdfGenerator";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -21,6 +22,7 @@ import {
   HelpCircle,
   AlertCircle,
   Sparkles,
+  Download,
 } from "lucide-react";
 import {
   fetchUniversities,
@@ -37,6 +39,8 @@ interface UniversityDetailsProps {
   onBack: () => void;
   data: UniversityFormData;
   onDataChange: (data: UniversityFormData) => void;
+  personalData?: any;  // NEW
+  documentsData?: any; // NEW
 }
 
 export interface UniversityFormData {
@@ -115,11 +119,14 @@ export default function UniversityDetails({
   onBack,
   data,
   onDataChange,
+  personalData,
+  documentsData,
 }: UniversityDetailsProps) {
   const [universities, setUniversities] = useState<University[]>([]);
   const [loadingUniversities, setLoadingUniversities] = useState(true);
   const [isScrapingCourses, setIsScrapingCourses] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [coursesScrapeResult, setCoursesScrapeResult] =
     useState<ScrapeCoursesResponse | null>(null);
   const [showManualCourse, setShowManualCourse] = useState(false);
@@ -359,6 +366,68 @@ export default function UniversityDetails({
   const canSubmit =
     data.isVerified ||
     (data.verificationResult && !data.verificationResult.scraping_successful);
+
+  const canDownloadPDF = data.universityId && data.course && data.totalFees;
+
+  const handleDownloadPDF = () => {
+  setIsDownloadingPDF(true);
+  
+  try {
+    const pdfData = {
+      // Personal Details
+      fullName: personalData?.fullName || "",
+      fatherName: personalData?.fatherName || "",
+      motherName: personalData?.motherName || "",
+      maritalStatus: personalData?.maritalStatus || "",
+      dob: personalData?.dobYear && personalData?.dobMonth && personalData?.dobDay
+        ? `${personalData.dobDay}/${personalData.dobMonth}/${personalData.dobYear}`
+        : "",
+      gender: personalData?.gender || "",
+      aadhaarNumber: personalData?.aadhaarNumber || "",
+      panNumber: personalData?.panNumber || "",
+      motherTongue: personalData?.motherTongue || "",
+      permanentMark1: personalData?.permanentMark1 || "",
+      permanentMark2: personalData?.permanentMark2 || "",
+      
+      tribe: personalData?.tribe || "",
+      stCertificateNumber: personalData?.stCertificateNumber || "",
+      certificateIssueDate: personalData?.certificateIssueDate || "",
+      casteValidityCertNumber: personalData?.casteValidityCertNumber || "",
+      casteValidityIssueDate: personalData?.casteValidityIssueDate || "",
+      
+      address: personalData?.address || "",
+      city: personalData?.city || "",
+      state: personalData?.state || "",
+      pincode: personalData?.pincode || "",
+      phone: personalData?.phone || "",
+      email: personalData?.email || "",
+      
+      universityName: data.universityName,
+      universityCountry: selectedUniversity?.country || "",
+      course: data.course,
+      courseDegreeType: data.courseDegreeType,
+      totalFees: data.totalFees,
+      feesPageUrl: data.feesPageUrl,
+      isVerified: data.isVerified,
+      
+      documents: {
+        form16: documentsData?.form16 ? true : false,
+        casteCertificate: documentsData?.casteCertificate ? true : false,
+        marksheet10th: documentsData?.marksheet10th ? true : false,
+        marksheet12th: documentsData?.marksheet12th ? true : false,
+        graduationMarksheet: documentsData?.graduationMarksheet ? true : false,
+        offerLetter: data.offerLetter ? true : false,
+      },
+    };
+    
+    generateApplicationPDF(pdfData);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("Failed to generate PDF. Please try again.");
+  } finally {
+    setIsDownloadingPDF(false);
+  }
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1179,33 +1248,56 @@ export default function UniversityDetails({
       )}
 
       {/* Navigation Buttons */}
-      <div className="mt-10 flex justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="group flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </button>
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
-            canSubmit
-              ? result?.status === "accepted"
-                ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-                : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          {result?.status === "accepted"
-            ? "Submit Application"
-            : "Submit for Manual Review"}
-        </button>
-      </div>
+<div className="mt-10 flex justify-between">
+  <button
+    type="button"
+    onClick={onBack}
+    className="group flex items-center gap-3 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
+  >
+    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+    Back
+  </button>
+
+  <div className="flex items-center gap-4">
+    <button
+      type="button"
+      onClick={handleDownloadPDF}
+      disabled={isDownloadingPDF}
+      className="group flex items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+    >
+      {isDownloadingPDF ? (
+        <>
+          <Loader2 className="w-5 h-5 animate-spin" />
+          Generating PDF...
+        </>
+      ) : (
+        <>
+          <Download className="w-5 h-5" />
+          Download PDF
+        </>
+      )}
+    </button>
+
+    {/* Submit Button */}
+    <button
+      type="submit"
+      disabled={!canSubmit}
+      className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+        canSubmit
+          ? result?.status === "accepted"
+            ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+            : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105"
+          : "bg-gray-200 text-gray-400 cursor-not-allowed"
+      }`}
+    >
+      <CheckCircle2 className="w-5 h-5" />
+      {result?.status === "accepted"
+        ? "Submit Application"
+        : "Submit for Manual Review"}
+    </button>
+  </div>
+</div>
     </form>
   );
 }
