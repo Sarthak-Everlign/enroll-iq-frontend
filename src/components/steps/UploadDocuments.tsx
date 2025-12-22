@@ -10,12 +10,15 @@ import {
   AlertTriangle,
   Receipt,
   GraduationCap,
+  Building2,
+  CreditCard,
+  FileCheck,
+  CheckSquare,
 } from "lucide-react";
 import {
-  verifyForm16,
-  verifyCasteCertificate,
-  verifyMarksheet,
-  type VerificationResponse,
+  uploadToS3,
+  checkS3DocumentsStatus,
+  type S3UploadResponse,
 } from "@/lib/api";
 
 interface UploadDocumentsProps {
@@ -26,29 +29,39 @@ interface UploadDocumentsProps {
   personalData: {
     fullName: string;
   };
+  applicationId?: string;
 }
 
 export interface DocumentsFormData {
   form16: File | null;
-  form16Verified: boolean;
-  form16Eligible: boolean | null;
-  form16Data: Record<string, unknown> | null;
+  form16S3Key: string | null;
+  form16S3Url: string | null;
   casteCertificate: File | null;
-  casteVerified: boolean;
-  casteEligible: boolean | null;
-  casteData: Record<string, unknown> | null;
+  casteS3Key: string | null;
+  casteS3Url: string | null;
   marksheet10th: File | null;
-  marksheet10thVerified: boolean;
-  marksheet10thEligible: boolean | null;
-  marksheet10thData: Record<string, unknown> | null;
+  marksheet10thS3Key: string | null;
+  marksheet10thS3Url: string | null;
   marksheet12th: File | null;
-  marksheet12thVerified: boolean;
-  marksheet12thEligible: boolean | null;
-  marksheet12thData: Record<string, unknown> | null;
+  marksheet12thS3Key: string | null;
+  marksheet12thS3Url: string | null;
   graduationMarksheet: File | null;
-  graduationVerified: boolean;
-  graduationEligible: boolean | null;
-  graduationData: Record<string, unknown> | null;
+  graduationS3Key: string | null;
+  graduationS3Url: string | null;
+  offerLetter: File | null;
+  offerLetterS3Key: string | null;
+  offerLetterS3Url: string | null;
+  bankPassbook: File | null;
+  bankPassbookS3Key: string | null;
+  bankPassbookS3Url: string | null;
+  statementOfPurpose: File | null;
+  statementOfPurposeS3Key: string | null;
+  statementOfPurposeS3Url: string | null;
+  cv: File | null;
+  cvS3Key: string | null;
+  cvS3Url: string | null;
+  noPreviousScholarship: boolean;
+  courseFullTimeEligible: boolean;
 }
 
 export default function UploadDocuments({
@@ -57,180 +70,281 @@ export default function UploadDocuments({
   data,
   onDataChange,
   personalData,
+  applicationId,
 }: UploadDocumentsProps) {
   const [errors, setErrors] = useState<string[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
 
-  // Parse name for caste verification
-  const nameParts = personalData.fullName.trim().split(" ");
-  const firstName = nameParts[0] || "";
-  const lastName = nameParts.slice(1).join(" ") || nameParts[0] || "";
-
-  const handleForm16Upload = async (
-    file: File
-  ): Promise<VerificationResponse> => {
-    onDataChange({
-      ...data,
-      form16: file,
-      form16Verified: false,
-      form16Eligible: null,
-      form16Data: null,
-    });
-
-    const result = await verifyForm16(file);
-
-    onDataChange({
-      ...data,
-      form16: file,
-      form16Verified: result.success,
-      form16Eligible: result.is_eligible ?? null,
-      form16Data: result.data ?? null,
-    });
-
-    return result;
-  };
-
-  const handleCasteUpload = async (
-    file: File
-  ): Promise<VerificationResponse> => {
-    onDataChange({
-      ...data,
-      casteCertificate: file,
-      casteVerified: false,
-      casteEligible: null,
-      casteData: null,
-    });
-
-    const result = await verifyCasteCertificate(file, firstName, lastName);
-
-    onDataChange({
-      ...data,
-      casteCertificate: file,
-      casteVerified: result.success,
-      casteEligible: result.is_eligible ?? null,
-      casteData: result.data ?? null,
-    });
-
-    return result;
-  };
-
-  const handleMarksheet10thUpload = async (
-    file: File
-  ): Promise<VerificationResponse> => {
-    onDataChange({
-      ...data,
-      marksheet10th: file,
-      marksheet10thVerified: false,
-      marksheet10thEligible: null,
-      marksheet10thData: null,
-    });
-
-    const result = await verifyMarksheet(file, "10th", firstName, lastName);
-
-    onDataChange({
-      ...data,
-      marksheet10th: file,
-      marksheet10thVerified: result.success,
-      marksheet10thEligible: result.is_eligible ?? null,
-      marksheet10thData: result.data ?? null,
-    });
-
-    return result;
-  };
-
-  const handleMarksheet12thUpload = async (
-    file: File
-  ): Promise<VerificationResponse> => {
-    onDataChange({
-      ...data,
-      marksheet12th: file,
-      marksheet12thVerified: false,
-      marksheet12thEligible: null,
-      marksheet12thData: null,
-    });
-
-    const result = await verifyMarksheet(file, "12th", firstName, lastName);
-
-    onDataChange({
-      ...data,
-      marksheet12th: file,
-      marksheet12thVerified: result.success,
-      marksheet12thEligible: result.is_eligible ?? null,
-      marksheet12thData: result.data ?? null,
-    });
-
-    return result;
-  };
-
-  const handleGraduationUpload = async (
-    file: File
-  ): Promise<VerificationResponse> => {
-    onDataChange({
-      ...data,
-      graduationMarksheet: file,
-      graduationVerified: false,
-      graduationEligible: null,
-      graduationData: null,
-    });
-
-    const result = await verifyMarksheet(
-      file,
-      "graduation",
-      firstName,
-      lastName
+  if (!applicationId) {
+    return (
+      <div className="animate-fade-in">
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-100">
+          <p className="text-red-700">
+            Application ID is required to upload documents.
+          </p>
+        </div>
+      </div>
     );
+  }
 
+  // Generic upload handler
+  const createUploadHandler = (
+    documentType:
+      | "form16"
+      | "caste"
+      | "marksheet10th"
+      | "marksheet12th"
+      | "graduation"
+      | "offerLetter"
+      | "bankPassbook"
+      | "statementOfPurpose"
+      | "cv"
+  ) => {
+    return async (file: File): Promise<S3UploadResponse> => {
+      const pathMap: Record<string, string> = {
+        form16: `enroll_iq_files/submission_files/{applicationId}/documents/form16/`,
+        caste: `enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/`,
+        marksheet10th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/`,
+        marksheet12th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/`,
+        graduation: `enroll_iq_files/submission_files/{applicationId}/documents/graduation/`,
+        offerLetter: `enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/`,
+        bankPassbook: `enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/`,
+        statementOfPurpose: `enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/`,
+        cv: `enroll_iq_files/submission_files/{applicationId}/documents/cv/`,
+      };
+
+      const s3KeyMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16S3Key",
+        caste: "casteS3Key",
+        marksheet10th: "marksheet10thS3Key",
+        marksheet12th: "marksheet12thS3Key",
+        graduation: "graduationS3Key",
+        offerLetter: "offerLetterS3Key",
+        bankPassbook: "bankPassbookS3Key",
+        statementOfPurpose: "statementOfPurposeS3Key",
+        cv: "cvS3Key",
+      };
+
+      const s3UrlMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16S3Url",
+        caste: "casteS3Url",
+        marksheet10th: "marksheet10thS3Url",
+        marksheet12th: "marksheet12thS3Url",
+        graduation: "graduationS3Url",
+        offerLetter: "offerLetterS3Url",
+        bankPassbook: "bankPassbookS3Url",
+        statementOfPurpose: "statementOfPurposeS3Url",
+        cv: "cvS3Url",
+      };
+
+      const fileMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16",
+        caste: "casteCertificate",
+        marksheet10th: "marksheet10th",
+        marksheet12th: "marksheet12th",
+        graduation: "graduationMarksheet",
+        offerLetter: "offerLetter",
+        bankPassbook: "bankPassbook",
+        statementOfPurpose: "statementOfPurpose",
+        cv: "cv",
+      };
+
+      // Update local state with file
+      onDataChange({
+        ...data,
+        [fileMap[documentType]]: file,
+      });
+
+      // Upload to S3
+      const result = await uploadToS3(file, pathMap[documentType], {
+        applicationId,
+        fileName: file.name,
+      });
+
+      if (result.success && result.data) {
+        // Update with S3 info
+        onDataChange({
+          ...data,
+          [fileMap[documentType]]: file,
+          [s3KeyMap[documentType]]: result.data.s3Key,
+          [s3UrlMap[documentType]]: result.data.s3Url,
+        });
+      }
+
+      return result;
+    };
+  };
+
+  const handleForm16Upload = createUploadHandler("form16");
+  const handleCasteUpload = createUploadHandler("caste");
+  const handleMarksheet10thUpload = createUploadHandler("marksheet10th");
+  const handleMarksheet12thUpload = createUploadHandler("marksheet12th");
+  const handleGraduationUpload = createUploadHandler("graduation");
+  const handleOfferLetterUpload = createUploadHandler("offerLetter");
+  const handleBankPassbookUpload = createUploadHandler("bankPassbook");
+  const handleStatementOfPurposeUpload =
+    createUploadHandler("statementOfPurpose");
+  const handleCvUpload = createUploadHandler("cv");
+
+  const handleCheckboxChange = (
+    field: "noPreviousScholarship" | "courseFullTimeEligible",
+    checked: boolean
+  ) => {
     onDataChange({
       ...data,
-      graduationMarksheet: file,
-      graduationVerified: result.success,
-      graduationEligible: result.is_eligible ?? null,
-      graduationData: result.data ?? null,
+      [field]: checked,
     });
-
-    return result;
   };
 
-  const validate = () => {
-    const newErrors: string[] = [];
-
-    if (!data.form16) newErrors.push("form16");
-    if (!data.marksheet10th && !data.marksheet12th) {
-      newErrors.push("marksheet");
+  const validate = async (): Promise<boolean> => {
+    if (!applicationId) {
+      setErrors(["applicationId"]);
+      return false;
     }
 
-    // Check eligibility
-    if (data.form16Eligible === false) {
-      newErrors.push("form16_ineligible");
-    }
-    if (data.casteEligible === false) {
-      newErrors.push("caste_ineligible");
-    }
+    setIsValidating(true);
+    setErrors([]);
 
-    setErrors(newErrors);
-    return newErrors.length === 0;
+    try {
+      // Check S3 for all documents
+      const result = await checkS3DocumentsStatus(applicationId);
+
+      if (!result.success || !result.data) {
+        setErrors(["validation_error"]);
+        setIsValidating(false);
+        return false;
+      }
+
+      const documentStatus = result.data;
+      const newErrors: string[] = [];
+
+      // Check if Form 16 is uploaded
+      if (!documentStatus.form16?.exists) {
+        newErrors.push("form16");
+      }
+
+      // Check if at least one marksheet is uploaded (10th or 12th)
+      if (
+        !documentStatus.marksheet10th?.exists &&
+        !documentStatus.marksheet12th?.exists
+      ) {
+        newErrors.push("marksheet");
+      }
+
+      // Update local state with S3 keys if they exist (for display purposes)
+      if (documentStatus.form16?.exists && documentStatus.form16.s3Key) {
+        onDataChange({
+          ...data,
+          form16S3Key: documentStatus.form16.s3Key,
+          form16S3Url: documentStatus.form16.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.marksheet10th?.exists &&
+        documentStatus.marksheet10th.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          marksheet10thS3Key: documentStatus.marksheet10th.s3Key,
+          marksheet10thS3Url: documentStatus.marksheet10th.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.marksheet12th?.exists &&
+        documentStatus.marksheet12th.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          marksheet12thS3Key: documentStatus.marksheet12th.s3Key,
+          marksheet12thS3Url: documentStatus.marksheet12th.s3Url || null,
+        });
+      }
+      if (documentStatus.caste?.exists && documentStatus.caste.s3Key) {
+        onDataChange({
+          ...data,
+          casteS3Key: documentStatus.caste.s3Key,
+          casteS3Url: documentStatus.caste.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.graduation?.exists &&
+        documentStatus.graduation.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          graduationS3Key: documentStatus.graduation.s3Key,
+          graduationS3Url: documentStatus.graduation.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.offerLetter?.exists &&
+        documentStatus.offerLetter.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          offerLetterS3Key: documentStatus.offerLetter.s3Key,
+          offerLetterS3Url: documentStatus.offerLetter.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.bankPassbook?.exists &&
+        documentStatus.bankPassbook.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          bankPassbookS3Key: documentStatus.bankPassbook.s3Key,
+          bankPassbookS3Url: documentStatus.bankPassbook.s3Url || null,
+        });
+      }
+      if (
+        documentStatus.statementOfPurpose?.exists &&
+        documentStatus.statementOfPurpose.s3Key
+      ) {
+        onDataChange({
+          ...data,
+          statementOfPurposeS3Key: documentStatus.statementOfPurpose.s3Key,
+          statementOfPurposeS3Url:
+            documentStatus.statementOfPurpose.s3Url || null,
+        });
+      }
+      if (documentStatus.cv?.exists && documentStatus.cv.s3Key) {
+        onDataChange({
+          ...data,
+          cvS3Key: documentStatus.cv.s3Key,
+          cvS3Url: documentStatus.cv.s3Url || null,
+        });
+      }
+
+      setErrors(newErrors);
+      setIsValidating(false);
+      return newErrors.length === 0;
+    } catch (error) {
+      console.error("Validation error:", error);
+      setErrors(["validation_error"]);
+      setIsValidating(false);
+      return false;
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
+    const isValid = await validate();
+    if (isValid) {
       onNext();
     }
   };
 
   const uploadedCount = [
-    data.form16,
-    data.casteCertificate,
-    data.marksheet10th,
-    data.marksheet12th,
-    data.graduationMarksheet,
+    data.form16S3Key,
+    data.casteS3Key,
+    data.marksheet10thS3Key,
+    data.marksheet12thS3Key,
+    data.graduationS3Key,
+    data.offerLetterS3Key,
+    data.bankPassbookS3Key,
+    data.statementOfPurposeS3Key,
+    data.cvS3Key,
   ].filter(Boolean).length;
-
-  const hasEligibilityIssues =
-    data.form16Eligible === false ||
-    data.casteEligible === false ||
-    data.marksheet10thEligible === false ||
-    data.marksheet12thEligible === false ||
-    data.graduationEligible === false;
 
   return (
     <form onSubmit={handleSubmit} className="animate-fade-in">
@@ -246,12 +360,12 @@ export default function UploadDocuments({
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
             {uploadedCount}
           </div>
-          <span className="text-sm text-gray-600">of 5 uploaded</span>
+          <span className="text-sm text-gray-600">of 9 uploaded</span>
         </div>
       </div>
 
       {/* Info Banner */}
-      <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+      {/* <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
             <Shield className="w-5 h-5 text-blue-600" />
@@ -276,50 +390,10 @@ export default function UploadDocuments({
             </a>
           </div>
         </div>
-      </div>
-
-      {/* Eligibility Error Banner */}
-      {hasEligibilityIssues && (
-        <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-100 animate-slide-up">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-red-900">
-                Eligibility Issues Detected
-              </h4>
-              <ul className="text-sm text-red-700 mt-1 list-disc list-inside">
-                {data.form16Eligible === false && (
-                  <li>Income exceeds ₹8,00,000 limit based on Form 16</li>
-                )}
-                {data.casteEligible === false && (
-                  <li>
-                    Caste certificate verification failed or you don't belong to
-                    SC/ST category
-                  </li>
-                )}
-                {data.marksheet10thEligible === false && (
-                  <li>10th marksheet: Percentage is below the required 80%</li>
-                )}
-                {data.marksheet12thEligible === false && (
-                  <li>12th marksheet: Percentage is below the required 80%</li>
-                )}
-                {data.graduationEligible === false && (
-                  <li>
-                    Graduation marksheet: Percentage is below the required 80%
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+      </div> */}
 
       {/* Required Documents Error */}
-      {errors.includes("form16") ||
-      errors.includes("casteCertificate") ||
-      errors.includes("marksheet") ? (
+      {errors.length > 0 && !errors.includes("validation_error") && (
         <div className="mb-8 p-4 rounded-2xl bg-amber-50 border border-amber-100 animate-slide-up">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -329,58 +403,241 @@ export default function UploadDocuments({
               <h4 className="font-semibold text-amber-900">
                 Required Documents Missing
               </h4>
-              <p className="text-sm text-amber-700 mt-1">
-                Please upload Form 16, Caste Certificate, and at least one
-                marksheet to continue.
+              <ul className="text-sm text-amber-700 mt-1 list-disc list-inside space-y-1">
+                {errors.includes("form16") && <li>Form 16 is required</li>}
+                {errors.includes("marksheet") && (
+                  <li>At least one marksheet (10th or 12th) is required</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Validation Error */}
+      {errors.includes("validation_error") && (
+        <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-100 animate-slide-up">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-red-900">Validation Error</h4>
+              <p className="text-sm text-red-700 mt-1">
+                Failed to validate documents. Please try again.
               </p>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
-      {/* Document Upload Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Form 16 */}
-        <DocumentUploadCard
-          title="Form 16"
-          description="Income tax Form 16 for income verification (must be ≤ ₹8L)"
-          icon={<Receipt className="w-6 h-6" />}
-          required
-          onUpload={handleForm16Upload}
-        />
+      {/* Document Upload Sections */}
+      <div className="space-y-6">
+        {/* Income Details Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <Receipt className="w-5 h-5 text-purple-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Income Details
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="Form 16"
+              description="Income tax Form 16 for income verification"
+              icon={<Receipt className="w-6 h-6" />}
+              required
+              onUpload={handleForm16Upload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/"
+            />
+          </div>
+        </div>
 
-        {/* Caste Certificate */}
-        <DocumentUploadCard
-          title="Caste Certificate"
-          description={`SC/ST certificate for ${firstName} ${lastName}`}
-          icon={<Shield className="w-6 h-6" />}
-          onUpload={handleCasteUpload}
-        />
+        {/* Identity Documents Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <Shield className="w-5 h-5 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Identity Documents
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="Caste Certificate"
+              description="SC/ST certificate"
+              icon={<Shield className="w-6 h-6" />}
+              onUpload={handleCasteUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/"
+            />
+          </div>
+        </div>
 
-        {/* 10th Marksheet */}
-        <DocumentUploadCard
-          title="10th Marksheet"
-          description="Secondary School Certificate (SSC) marksheet"
-          icon={<FileText className="w-6 h-6" />}
-          onUpload={handleMarksheet10thUpload}
-        />
+        {/* Academic Documents Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <GraduationCap className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Academic Documents
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="10th Marksheet"
+              description="Secondary School Certificate (SSC) marksheet"
+              icon={<FileText className="w-6 h-6" />}
+              onUpload={handleMarksheet10thUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/"
+            />
 
-        {/* 12th Marksheet */}
-        <DocumentUploadCard
-          title="12th Marksheet"
-          description="Higher Secondary Certificate (HSC) marksheet"
-          icon={<FileText className="w-6 h-6" />}
-          onUpload={handleMarksheet12thUpload}
-        />
+            <DocumentUploadCard
+              title="12th Marksheet"
+              description="Higher Secondary Certificate (HSC) marksheet"
+              icon={<FileText className="w-6 h-6" />}
+              onUpload={handleMarksheet12thUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/"
+            />
 
-        {/* Graduation Marksheet */}
-        <div className="lg:col-span-2">
-          <DocumentUploadCard
-            title="Graduation Marksheet"
-            description="Bachelor's degree final year marksheet (if applicable)"
-            icon={<GraduationCap className="w-6 h-6" />}
-            onUpload={handleGraduationUpload}
-          />
+            <div className="lg:col-span-2">
+              <DocumentUploadCard
+                title="Graduation Marksheet"
+                description="Bachelor's degree final year marksheet (if applicable)"
+                icon={<GraduationCap className="w-6 h-6" />}
+                onUpload={handleGraduationUpload}
+                applicationId={applicationId}
+                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/graduation/"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* University Documents Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <Building2 className="w-5 h-5 text-indigo-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              University Documents
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="Offer Letter"
+              description="From Foreign University (Top 200 QS Ranking)"
+              icon={<Building2 className="w-6 h-6" />}
+              onUpload={handleOfferLetterUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
+            />
+          </div>
+        </div>
+
+        {/* Financial Documents Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <CreditCard className="w-5 h-5 text-amber-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Financial Documents
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="Bank Passbook"
+              description="First page of bank passbook"
+              icon={<CreditCard className="w-6 h-6" />}
+              onUpload={handleBankPassbookUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/"
+            />
+          </div>
+        </div>
+
+        {/* Additional Documents Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <FileCheck className="w-5 h-5 text-teal-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Additional Documents
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              title="Statement of Purpose"
+              description="SOP document (if required)"
+              icon={<FileText className="w-6 h-6" />}
+              onUpload={handleStatementOfPurposeUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/"
+            />
+
+            <DocumentUploadCard
+              title="CV / Resume"
+              description="Curriculum Vitae (if required)"
+              icon={<FileCheck className="w-6 h-6" />}
+              onUpload={handleCvUpload}
+              applicationId={applicationId}
+              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/cv/"
+            />
+          </div>
+        </div>
+
+        {/* Declarations Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+            <CheckSquare className="w-5 h-5 text-orange-600" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Declarations
+            </h3>
+          </div>
+          <div className="space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={data.noPreviousScholarship}
+                onChange={(e) =>
+                  handleCheckboxChange(
+                    "noPreviousScholarship",
+                    e.target.checked
+                  )
+                }
+                className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
+                  No Previous Foreign Scholarship Taken Declaration
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  I declare that I have not received any previous foreign
+                  scholarship
+                </p>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={data.courseFullTimeEligible}
+                onChange={(e) =>
+                  handleCheckboxChange(
+                    "courseFullTimeEligible",
+                    e.target.checked
+                  )
+                }
+                className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
+                  Course is Full‑time and Eligible
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  I confirm that the course I am applying for is full-time and
+                  eligible for scholarship
+                </p>
+              </div>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -397,15 +654,20 @@ export default function UploadDocuments({
 
         <button
           type="submit"
-          disabled={hasEligibilityIssues}
-          className={`group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg ${
-            hasEligibilityIssues
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white hover:shadow-xl hover:scale-105 btn-shine"
-          }`}
+          disabled={isValidating}
+          className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
-          Save & Continue
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          {isValidating ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Validating...
+            </>
+          ) : (
+            <>
+              Save & Continue
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </button>
       </div>
     </form>

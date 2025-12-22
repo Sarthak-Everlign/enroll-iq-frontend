@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Upload,
   File,
@@ -8,11 +8,12 @@ import {
   Check,
   AlertCircle,
   Loader2,
-  Shield,
   AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { clsx } from "clsx";
-import type { VerificationResponse } from "@/lib/api";
+import type { S3UploadResponse, S3FileExistsResponse } from "@/lib/api";
+import { checkS3FileExists } from "@/lib/api";
 
 interface DocumentUploadCardProps {
   title: string;
@@ -21,17 +22,19 @@ interface DocumentUploadCardProps {
   accept?: string;
   required?: boolean;
   maxSizeMB?: number;
-  onUpload: (file: File) => Promise<VerificationResponse>;
-  onVerificationComplete?: (result: VerificationResponse) => void;
+  onUpload: (file: File) => Promise<S3UploadResponse>;
+  applicationId?: string;
+  documentPath?: string; // S3 path to check for existing file
+  fileName?: string; // Optional filename to check
 }
 
 type UploadStatus =
   | "idle"
+  | "checking"
+  | "exists"
   | "uploading"
-  | "verifying"
   | "success"
-  | "error"
-  | "ineligible";
+  | "error";
 
 export default function DocumentUploadCard({
   title,
@@ -41,19 +44,60 @@ export default function DocumentUploadCard({
   required = false,
   maxSizeMB = 5,
   onUpload,
-  onVerificationComplete,
+  applicationId,
+  documentPath,
+  fileName,
 }: DocumentUploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [verificationResult, setVerificationResult] =
-    useState<VerificationResponse | null>(null);
+  const [uploadResult, setUploadResult] = useState<S3UploadResponse | null>(
+    null
+  );
+  const [existingFile, setExistingFile] = useState<S3FileExistsResponse | null>(
+    null
+  );
+  const [isChecking, setIsChecking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if file exists on mount
+  useEffect(() => {
+    if (documentPath && applicationId && !file) {
+      checkExistingFile();
+    }
+  }, [documentPath, applicationId]);
+
+  const checkExistingFile = async () => {
+    if (!documentPath || !applicationId) return;
+
+    setIsChecking(true);
+    setStatus("checking");
+
+    try {
+      const result = await checkS3FileExists(documentPath, {
+        applicationId,
+        fileName,
+      });
+
+      if (result.exists) {
+        setExistingFile(result);
+        setStatus("exists");
+      } else {
+        setStatus("idle");
+      }
+    } catch (err) {
+      console.error("Error checking file existence:", err);
+      setStatus("idle");
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const handleFileSelect = async (selectedFile: File | null) => {
     setError(null);
-    setVerificationResult(null);
+    setUploadResult(null);
+    setExistingFile(null);
 
     if (!selectedFile) {
       setFile(null);
@@ -70,32 +114,28 @@ export default function DocumentUploadCard({
     setFile(selectedFile);
     setStatus("uploading");
 
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setStatus("verifying");
-
     try {
       const result = await onUpload(selectedFile);
-      setVerificationResult(result);
+      setUploadResult(result);
 
-      if (result.success && result.is_eligible === true) {
+      if (result.success) {
         setStatus("success");
-      } else if (result.success && result.is_eligible === false) {
-        setStatus("ineligible");
-      } else if (!result.success) {
+      } else {
         setStatus("error");
         setError(result.message);
-      } else {
-        // is_eligible is null (manual verification needed)
-        setStatus("success");
       }
-
-      onVerificationComplete?.(result);
     } catch (err) {
       setStatus("error");
-      setError("Verification failed. Please try again.");
+      setError(
+        err instanceof Error ? err.message : "Upload failed. Please try again."
+      );
     }
+  };
+
+  const handleReplaceFile = () => {
+    setExistingFile(null);
+    setStatus("idle");
+    inputRef.current?.click();
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -122,9 +162,14 @@ export default function DocumentUploadCard({
     setFile(null);
     setStatus("idle");
     setError(null);
-    setVerificationResult(null);
+    setUploadResult(null);
+    setExistingFile(null);
     if (inputRef.current) {
       inputRef.current.value = "";
+    }
+    // Re-check for existing file
+    if (documentPath && applicationId) {
+      checkExistingFile();
     }
   };
 
@@ -137,72 +182,96 @@ export default function DocumentUploadCard({
   const getStatusColor = () => {
     switch (status) {
       case "success":
-        return "border-green-200 bg-green-50/50";
-      case "ineligible":
-        return "border-red-200 bg-red-50/50";
+        return "border-green-200 bg-green-50/30";
+      case "exists":
+        return "border-blue-200 bg-blue-50/30";
       case "error":
-        return "border-red-200 bg-red-50/50";
-      case "verifying":
-        return "border-blue-200 bg-blue-50/50";
+        return "border-red-200 bg-red-50/30";
+      case "checking":
       case "uploading":
-        return "border-blue-200 bg-blue-50/50";
+        return "border-blue-200 bg-blue-50/30";
       default:
-        return "border-gray-100 bg-white hover:border-gray-200";
+        return "border-gray-200 bg-white hover:border-gray-300";
     }
   };
 
   return (
     <div
       className={clsx(
-        "p-6 rounded-2xl border-2 transition-all duration-300",
+        "p-4 rounded-xl border transition-all duration-300",
         getStatusColor()
       )}
     >
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-4">
+      {/* Header - Compact */}
+      <div className="flex items-center gap-3 mb-3">
         <div
           className={clsx(
-            "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+            "w-10 h-10 rounded-lg flex items-center justify-center transition-colors flex-shrink-0",
             status === "success"
               ? "bg-gradient-to-br from-green-400 to-emerald-500 text-white"
-              : status === "ineligible"
-              ? "bg-gradient-to-br from-red-400 to-rose-500 text-white"
+              : status === "exists"
+              ? "bg-gradient-to-br from-blue-400 to-indigo-500 text-white"
               : status === "error"
               ? "bg-gradient-to-br from-red-400 to-rose-500 text-white"
-              : status === "verifying"
+              : status === "checking" || status === "uploading"
               ? "bg-gradient-to-br from-blue-400 to-indigo-500 text-white"
               : "bg-gray-100 text-gray-500"
           )}
         >
-          {status === "verifying" ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
+          {status === "checking" || status === "uploading" ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : status === "success" ? (
-            <Check className="w-6 h-6" />
-          ) : status === "ineligible" || status === "error" ? (
-            <AlertTriangle className="w-6 h-6" />
+            <Check className="w-5 h-5" />
+          ) : status === "exists" ? (
+            <Check className="w-5 h-5" />
+          ) : status === "error" ? (
+            <AlertTriangle className="w-5 h-5" />
           ) : (
-            icon
+            <div className="w-5 h-5">{icon}</div>
           )}
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-800">{title}</h3>
-            {required && <span className="text-red-500 text-sm">*</span>}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-gray-800 text-sm truncate">
+              {title}
+            </h3>
+            {required && <span className="text-red-500 text-xs">*</span>}
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+          <p className="text-xs text-gray-500 truncate">{description}</p>
         </div>
       </div>
 
       {/* Upload Area or File Display */}
-      {status === "idle" ? (
+      {status === "exists" && existingFile ? (
+        <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <p className="text-xs font-medium text-blue-700 truncate">
+                Already uploaded
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleReplaceFile}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-xs font-medium transition-colors flex-shrink-0"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Replace
+            </button>
+          </div>
+        </div>
+      ) : status === "idle" ? (
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onClick={() => inputRef.current?.click()}
           className={clsx(
-            "upload-zone rounded-xl p-4 cursor-pointer transition-all duration-300",
-            isDragOver && "dragover scale-[1.02]"
+            "upload-zone rounded-lg p-3 cursor-pointer transition-all duration-300 border-2 border-dashed",
+            isDragOver
+              ? "border-pink-400 bg-pink-50 scale-[1.01]"
+              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
           )}
         >
           <input
@@ -213,121 +282,80 @@ export default function DocumentUploadCard({
             className="hidden"
           />
 
-          <div className="flex items-center gap-3 text-center">
+          <div className="flex items-center gap-2.5">
             <div
               className={clsx(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0",
                 isDragOver
                   ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white"
                   : "bg-gray-100 text-gray-400"
               )}
             >
-              <Upload className="w-5 h-5" />
+              <Upload className="w-4 h-4" />
             </div>
-            <div className="text-left">
-              <p className="text-sm text-gray-700">
-                <span className="text-pink-600 font-medium">
-                  Click to upload
-                </span>{" "}
-                or drag and drop
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-700">
+                <span className="text-pink-600 font-medium">Click</span> or drag
+                to upload
               </p>
               <p className="text-xs text-gray-500">
-                PDF, JPG, PNG (max {maxSizeMB}MB)
+                PDF, JPG, PNG • Max {maxSizeMB}MB
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          {/* File Info */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/50 border border-gray-100">
-            <File className="w-5 h-5 text-gray-400" />
+        <div className="space-y-2">
+          {/* File Info - Compact */}
+          <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-white/60 border border-gray-100">
+            <File className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800 truncate">
+              <p className="text-xs font-medium text-gray-800 truncate">
                 {file?.name}
               </p>
               <p className="text-xs text-gray-500">
                 {file && formatFileSize(file.size)}
               </p>
             </div>
-            {status !== "uploading" && status !== "verifying" && (
+            {status !== "uploading" && status !== "checking" && (
               <button
                 type="button"
                 onClick={handleRemove}
-                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors"
+                className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          {/* Status Message */}
+          {/* Status Message - Compact */}
+          {status === "checking" && (
+            <div className="flex items-center gap-1.5 text-blue-600 text-xs px-1">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Checking...</span>
+            </div>
+          )}
+
           {status === "uploading" && (
-            <div className="flex items-center gap-2 text-blue-600 text-sm">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Uploading document...
+            <div className="flex items-center gap-1.5 text-blue-600 text-xs px-1">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Uploading...</span>
             </div>
           )}
 
-          {status === "verifying" && (
-            <div className="flex items-center gap-2 text-blue-600 text-sm">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Verifying document...
-            </div>
-          )}
-
-          {status === "success" && verificationResult && (
-            <div className="p-3 rounded-xl bg-green-50 border border-green-100">
-              <div className="flex items-start gap-2">
-                <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-green-700">
-                    Verified Successfully
-                  </p>
-                  <p className="text-xs text-green-600 mt-0.5">
-                    {verificationResult.message}
-                  </p>
-                </div>
-              </div>
-              {verificationResult.data && (
-                <div className="mt-2 pt-2 border-t border-green-100">
-                  {verificationResult.data.formatted_income != null && (
-                    <p className="text-xs text-green-700">
-                      <span className="font-medium">Income:</span>{" "}
-                      {String(verificationResult.data.formatted_income)}
-                    </p>
-                  )}
-                  {verificationResult.data.category != null && (
-                    <p className="text-xs text-green-700">
-                      <span className="font-medium">Category:</span>{" "}
-                      {String(verificationResult.data.category)}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {status === "ineligible" && verificationResult && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-100">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-red-700">
-                    Not Eligible
-                  </p>
-                  <p className="text-xs text-red-600 mt-0.5">
-                    {verificationResult.message}
-                  </p>
-                </div>
-              </div>
+          {status === "success" && uploadResult && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+              <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <p className="text-xs font-medium text-green-700">
+                Uploaded successfully
+              </p>
             </div>
           )}
 
           {error && status === "error" && (
-            <div className="flex items-center gap-2 text-red-500 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {error}
+            <div className="flex items-center gap-1.5 text-red-500 text-xs px-1">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{error}</span>
             </div>
           )}
         </div>

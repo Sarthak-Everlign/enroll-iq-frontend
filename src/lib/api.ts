@@ -894,3 +894,172 @@ export async function updateAadharPanVerification(data: {
     return { success: false, message: "Failed to update verification" };
   }
 }
+
+// ============== S3 Upload Types ==============
+
+export interface S3UploadResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    s3Key: string;
+    s3Url: string;
+    fileName: string;
+    fileSize: number;
+    contentType: string;
+    uniqueIdentifier?: string;
+  };
+}
+
+export interface S3FileExistsResponse {
+  success: boolean;
+  exists: boolean;
+  message?: string;
+  data?: {
+    s3Key: string;
+    s3Url: string;
+  };
+}
+
+// ============== S3 Upload Functions ==============
+
+/**
+ * Generic function to upload files to S3
+ * @param file - The file to upload
+ * @param path - S3 path prefix (e.g., "enroll_iq_files/submission_files/{applicationId}/KYC/")
+ * @param options - Optional parameters
+ * @returns Upload response with S3 key and URL
+ */
+export async function uploadToS3(
+  file: File,
+  path: string,
+  options?: {
+    applicationId?: string;
+    fileName?: string;
+  }
+): Promise<S3UploadResponse> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("path", path);
+    
+    if (options?.applicationId) {
+      formData.append("applicationId", options.applicationId);
+    }
+    
+    if (options?.fileName) {
+      formData.append("fileName", options.fileName);
+    }
+
+    const response = await fetch("/api/upload-s3", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Failed to upload file to S3");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("S3 upload error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to upload file to S3",
+    };
+  }
+}
+
+/**
+ * Check if a file exists in S3
+ * @param path - S3 path (e.g., "enroll_iq_files/submission_files/{applicationId}/documents/form16.pdf")
+ * @param options - Optional parameters
+ * @returns Response indicating if file exists
+ */
+export async function checkS3FileExists(
+  path: string,
+  options?: {
+    applicationId?: string;
+    fileName?: string;
+  }
+): Promise<S3FileExistsResponse> {
+  try {
+    const params = new URLSearchParams();
+    params.append("path", path);
+    
+    if (options?.applicationId) {
+      params.append("applicationId", options.applicationId);
+    }
+    
+    if (options?.fileName) {
+      params.append("fileName", options.fileName);
+    }
+
+    const response = await fetch(`/api/check-s3-file?${params.toString()}`);
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Failed to check file existence");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("S3 check error:", error);
+    return {
+      success: false,
+      exists: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to check file existence",
+    };
+  }
+}
+
+export interface S3DocumentsStatusResponse {
+  success: boolean;
+  message?: string;
+  data?: Record<string, {
+    exists: boolean;
+    s3Key?: string;
+    s3Url?: string;
+  }>;
+}
+
+/**
+ * Check status of all documents for an application
+ * @param applicationId - Application ID
+ * @returns Status of all documents (form16, caste, marksheet10th, marksheet12th, graduation)
+ */
+export async function checkS3DocumentsStatus(
+  applicationId: string
+): Promise<S3DocumentsStatusResponse> {
+  try {
+    const params = new URLSearchParams();
+    params.append("applicationId", applicationId);
+
+    const response = await fetch(`/api/check-s3-documents?${params.toString()}`);
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Failed to check documents status");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("S3 documents check error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to check documents status",
+    };
+  }
+}
