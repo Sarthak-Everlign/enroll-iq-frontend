@@ -13,7 +13,9 @@ import {
   Shield,
   Sparkles,
   Info,
+  RefreshCw,
 } from "lucide-react";
+import { checkS3FileExists } from "@/lib/api";
 
 interface VideoKYCProps {
   onNext: (kycData: KYCData | null) => void;
@@ -31,7 +33,12 @@ export interface KYCData {
   uniqueIdentifier?: string;
 }
 
-type KYCStep = "instructions" | "capture" | "review" | "complete";
+type KYCStep =
+  | "instructions"
+  | "capture"
+  | "review"
+  | "complete"
+  | "alreadyDone";
 
 export default function VideoKYC({
   onNext,
@@ -46,9 +53,52 @@ export default function VideoKYC({
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [existingKycFile, setExistingKycFile] = useState<{
+    s3Key: string;
+    s3Url: string;
+  } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Check if KYC file already exists on mount
+  useEffect(() => {
+    if (applicationId && step === "instructions") {
+      checkExistingKyc();
+    }
+  }, [applicationId]);
+
+  const checkExistingKyc = async () => {
+    if (!applicationId) return;
+
+    setIsChecking(true);
+    try {
+      const result = await checkS3FileExists(
+        `enroll_iq_files/submission_files/{applicationId}/KYC/`,
+        {
+          applicationId,
+        }
+      );
+
+      if (result.exists && result.data) {
+        setExistingKycFile({
+          s3Key: result.data.s3Key,
+          s3Url: result.data.s3Url,
+        });
+        setStep("alreadyDone");
+      }
+    } catch (err) {
+      console.error("Error checking existing KYC:", err);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleRedoKyc = () => {
+    setExistingKycFile(null);
+    setStep("instructions");
+  };
 
   // Instructions for KYC
   const instructions = [
@@ -230,8 +280,75 @@ export default function VideoKYC({
         <Video className="w-5 h-5 text-purple-500" />
       </div>
 
+      {step === "alreadyDone" && existingKycFile && (
+        <div className="space-y-6">
+          {/* Already Done Card */}
+          <div className="max-w-2xl mx-auto bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-green-900 mb-2">
+                  KYC Already Completed
+                </h3>
+                <p className="text-green-700">
+                  Your Video KYC verification has already been completed and
+                  uploaded.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-center gap-4 pt-4">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back
+            </button>
+
+            <button
+              onClick={handleRedoKyc}
+              className="flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Do KYC Again
+            </button>
+
+            <button
+              onClick={() => {
+                onNext({
+                  photo: "",
+                  timestamp: new Date().toISOString(),
+                  verified: true,
+                  s3Key: existingKycFile.s3Key,
+                  s3Url: existingKycFile.s3Url,
+                });
+              }}
+              className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              Continue with Existing KYC
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {step === "instructions" && (
         <div className="space-y-8">
+          {/* Checking Status */}
+          {isChecking && (
+            <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-center gap-3 text-blue-700">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm">Checking for existing KYC...</span>
+              </div>
+            </div>
+          )}
+
           {/* Welcome Card */}
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-6">
             <div className="flex items-start gap-4">
