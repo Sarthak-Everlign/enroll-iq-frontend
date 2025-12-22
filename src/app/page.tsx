@@ -371,7 +371,7 @@ export default function Home() {
       </div>
       {/* application id last 4 digits capitalized */}
       <div className="text-center text-gray-600 text-sm mt-4 mb-4">
-        Application ID: {applicationData?.id?.slice(-6).toUpperCase()}
+        {/* Application ID: {applicationData?.id?.slice(-6).toUpperCase()} */}
       </div>
       <main className="flex-1 pb-6 lg:pb-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
