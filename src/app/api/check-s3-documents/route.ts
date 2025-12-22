@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3'
+export const dynamic = "force-dynamic";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
