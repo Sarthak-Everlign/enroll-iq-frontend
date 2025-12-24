@@ -8,10 +8,30 @@
       "emailOtp": "123456",
       "phoneOtp": "654321",
       "password": "test123"
+    },
+    {
+      "id": "user_harshal_kapse",
+      "username": "harshal.kapse",
+      "email": "harshal.kapse@rdc.in",
+      "phone": "9594117152",
+      "password": "Harshal@123"
+    },
+    {
+      "id": "user_nyle_gaikwad",
+      "username": "nyle.gaikwad",
+      "email": "gaikwadnyla@gmail.com",
+      "phone": "9690485844",
+      "password": "Nyle@123"
     }
   ],
+ 
   "aadharData": {
-    "validAadharNumbers": ["123456789012", "987654321098"],
+    "validAadharNumbers": [
+      "123456789012",
+      "987654321098",
+      "262105222807",
+      "120422024600"
+    ],
     "aadharOtp": "112233",
     "aadharDetails": {
       "123456789012": {
@@ -21,7 +41,7 @@
         "gender": "male",
         "address": "42, Shanti Nagar, Near City Mall",
         "city": "Mumbai",
-        "state": "maharashtra",
+        "state": "Maharashtra",
         "pincode": "400001",
         "phone": "9876543210",
         "photo": "/api/placeholder/150/180"
@@ -33,15 +53,50 @@
         "gender": "female",
         "address": "15, Aundh",
         "city": "Pune",
-        "state": "maharashtra",
+        "state": "Maharashtra",
         "pincode": "110001",
         "phone": "9123456789",
+        "photo": "/api/placeholder/150/180"
+      },
+      "262105222807": {
+        "fullName": "Harshal Uttam Kapse",
+        "fatherName": "Uttam Kapse",
+        "motherName": "Ujjwala Kapse",
+        "dob": "1999-04-07",
+        "gender": "male",
+        "category": "SC (Converted to Buddhism)",
+        "address": "Room No 12, New Natraj Society, Ayodhya Nagri, Manpada Road",
+        "city": "Dombivli East",
+        "district": "Thane",
+        "state": "Maharashtra",
+        "pincode": "421201",
+        "phone": "9594117152",
+        "photo": "/api/placeholder/150/180"
+      },
+      "120422024600": {
+        "fullName": "Nyle Rajay Gaikwad",
+        "fatherName": "Rajay Gaikwad",
+        "motherName": "Nimisha Gaikwad",
+        "dob": "1999-12-25",
+        "gender": "female",
+        "category": "SC (Mahar)",
+        "address": "26/22, Ketaki Vihar, Pokharan Road",
+        "city": "Thane",
+        "state": "Maharashtra",
+        "pincode": "400610",
+        "phone": "9690485844",
         "photo": "/api/placeholder/150/180"
       }
     }
   },
+ 
   "panData": {
-    "validPanNumbers": ["ABCDE1234F", "XYZAB5678G"],
+    "validPanNumbers": [
+      "ABCDE1234F",
+      "XYZAB5678G",
+      "ETOPK9104C",
+      "CRZPG1169G"
+    ],
     "panDetails": {
       "ABCDE1234F": {
         "name": "RAHUL KUMAR SHARMA",
@@ -54,17 +109,19 @@
         "fatherName": "VIKRAM SINGH",
         "dob": "22/08/1999",
         "panType": "Individual"
+      },
+      "ETOPK9104C": {
+        "name": "HARSHAL UTTAM KAPSE",
+        "fatherName": "UTTAM KAPSE",
+        "dob": "07/04/1999",
+        "panType": "Individual"
+      },
+      "CRZPG1169G": {
+        "name": "NYLE RAJAY GAIKWAD",
+        "fatherName": "RAJAY GAIKWAD",
+        "dob": "25/12/1999",
+        "panType": "Individual"
       }
     }
-  },
-  "videoKycReference": {
-    "instructions": [
-      "Hold your Aadhar card next to your face",
-      "Ensure good lighting on your face",
-      "Keep your face centered in the frame",
-      "Make sure the Aadhar card details are visible"
-    ],
-    "sampleImageUrl": "/sample-kyc-reference.png"
   }
 }
-
