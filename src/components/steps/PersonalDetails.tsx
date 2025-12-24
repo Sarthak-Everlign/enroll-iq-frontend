@@ -50,6 +50,7 @@ export interface PersonalFormData {
   pincode: string;
   phone: string;
   email: string;
+  category: string;
 }
 
 const maritalStatusOptions = [
@@ -129,6 +130,7 @@ export default function PersonalDetails({
   const [hasPrefilledData, setHasPrefilledData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [category, setCategory] = useState("SC");
 
   useEffect(() => {
     if (prefillData && !hasPrefilledData) {
@@ -151,6 +153,7 @@ export default function PersonalDetails({
         state: prefillData.state,
         pincode: prefillData.pincode,
         phone: prefillData.phone,
+        category: category,
       });
       setHasPrefilledData(true);
     }
@@ -177,7 +180,6 @@ export default function PersonalDetails({
       }
 
       const API = process.env.NEXT_PUBLIC_API_URL;
-
       /* ================= 1️⃣ PERSONAL DETAILS ================= */
       const personalPayload = {
         full_name: data.fullName || "",
@@ -192,6 +194,7 @@ export default function PersonalDetails({
         aadhaar_number: data.aadhaarNumber || "",
         permanent_mark1: data.permanentMark1 || "",
         permanent_mark2: data.permanentMark2 || "",
+        category: data.category,
         address: data.address || "",
         city: data.city || "",
         state: data.state || "",
@@ -211,6 +214,7 @@ export default function PersonalDetails({
 
       /* ================= 2️⃣ CASTE / TRIBE ================= */
       const castePayload = {
+        category: data.category || "",
         tribe: data.tribe || "",
         st_certificate_number: data.stCertificateNumber || "",
         certificate_issue_date: data.certificateIssueDate || "",
@@ -420,6 +424,27 @@ export default function PersonalDetails({
             placeholder="Enter mother tongue"
             value={data.motherTongue}
             onChange={handleChange("motherTongue")}
+          />
+        </div>
+        <div className="pt-6 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-6 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+            <h3 className="text-lg font-semibold text-gray-800">
+              Category Information
+            </h3>
+          </div>
+
+          <FormSelect
+            label="Category"
+            name="category"
+            options={[
+              { value: "SC", label: "SC" },
+              { value: "ST", label: "ST" },
+              { value: "Minority", label: "Minority" },
+              { value: "Open", label: "Open" },
+            ]}
+            value={data.category}
+            onChange={handleChange("category")}
           />
         </div>
 

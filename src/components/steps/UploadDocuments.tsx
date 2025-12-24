@@ -584,7 +584,7 @@ export default function UploadDocuments({
         </div>
 
         {/* Declarations Section */}
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
             <CheckSquare className="w-5 h-5 text-orange-600" />
             <h3 className="text-lg font-semibold text-gray-800">
@@ -638,7 +638,7 @@ export default function UploadDocuments({
               </div>
             </label>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Navigation Buttons */}

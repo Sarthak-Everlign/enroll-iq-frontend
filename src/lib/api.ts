@@ -409,6 +409,7 @@ export interface ApplicationData {
   created_at: string | null;
   updated_at: string | null;
   is_submitted?: boolean;
+  category?: string | null
 }
 
 export interface ApplicationResponse {
@@ -740,6 +741,68 @@ export async function updateUniversityDetails(
   } catch (error) {
     console.error("Update university details error:", error);
     return { success: false, message: "Failed to save university details" };
+  }
+}
+
+/**
+ * Update university details with file upload (offer letter)
+ */
+export async function updateUniversityDetailsWithFile(
+  data: {
+    application_id: string;
+    course_name: string;
+    total_fees_usd: number;
+    university_rank?: number;
+    fees_page_url: string;
+    no_previous_scholarship: boolean;
+    course_full_time_eligible: boolean;
+  },
+  offerLetterFile?: File
+): Promise<ApplicationResponse> {
+  try {
+    const formData = new FormData();
+    
+    // Add application ID
+    formData.append("application_id", data.application_id);
+    
+    // Add required form fields
+    formData.append("course_name", data.course_name);
+    formData.append("total_fees_usd", data.total_fees_usd.toString());
+    formData.append("fees_page_url", data.fees_page_url);
+    
+    // Add declarations
+    formData.append("no_previous_scholarship", data.no_previous_scholarship.toString());
+    formData.append("course_full_time_eligible", data.course_full_time_eligible.toString());
+    
+    if (data.university_rank) {
+      formData.append("university_rank", data.university_rank.toString());
+    }
+    
+    // Add offer letter file if present
+    if (offerLetterFile) {
+      formData.append("offer_letter", offerLetterFile);
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/application/update-university-details`,
+      {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Update university details with file error:", error);
+    return {
+      success: false,
+      message: "Failed to save university details. Please try again.",
+    };
   }
 }
 

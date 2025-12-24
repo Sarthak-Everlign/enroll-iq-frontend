@@ -42,6 +42,7 @@ export interface Application {
   marital_status: string | null;
   mother_tongue: string | null;
   tribe: string | null;
+  category: string | null;
 
   email: string | null;
   phone: string | null;
@@ -100,6 +101,7 @@ const initialPersonalData: PersonalFormData = {
   pincode: "",
   phone: "",
   email: "",
+  category: "",
 };
 
 const initialDocumentsData: DocumentsFormData = {
@@ -143,6 +145,8 @@ const initialUniversityData: UniversityFormData = {
   offerLetter: null,
   feesPageUrl: "",
   isVerified: false,
+  noPreviousScholarship: false,
+  courseFullTimeEligible: false,
 };
 
 export default function Home() {
@@ -201,9 +205,7 @@ export default function Home() {
     if (response.success && response.data) {
       const app = response.data as any;
 
-      console.log("Loaded application data:", app);
-
-      if (app.is_submitted || app.isSubmitted) {
+      if (app.application_status !== "in_progress") {
         setIsApplicationSubmitted(true);
       }
 
@@ -238,9 +240,8 @@ export default function Home() {
         pincode: app.pincode || "",
         phone: app.phone || "",
         email: app.email || "",
+        category: app.category || "",
       });
-
-      console.log("✅ Personal data loaded successfully");
     }
   };
 
@@ -432,6 +433,11 @@ export default function Home() {
                 documentsData={documentsData}
                 isApplicationSubmitted={isApplicationSubmitted}
                 onSubmissionSuccess={() => setIsApplicationSubmitted(true)}
+                applicationId={
+                  (applicationData as any)?.application_id ||
+                  (applicationData as any)?.id ||
+                  String(applicationData?.id || "")
+                }
               />
             )}
           </div>
