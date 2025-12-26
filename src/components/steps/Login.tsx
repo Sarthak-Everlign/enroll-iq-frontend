@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Mail, Phone, ArrowRight, Shield, CheckCircle2, Loader2, Sparkles, Lock, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import { Mail, Phone, ArrowRight, CheckCircle2, Loader2, Sparkles, Lock, Eye, EyeOff } from 'lucide-react'
 import { register, login, type AuthUser } from '@/lib/api'
+import Image from 'next/image'
 
 interface LoginProps {
   onLoginSuccess: (userData: UserData) => void
@@ -16,10 +17,23 @@ export interface UserData {
   token?: string
 }
 
-type AuthStep = 'credentials' | 'success'
+type AuthStep = 'splash' | 'credentials' | 'success'
+
+// Background and button gradients from splash-login
+const backgroundGradient =
+  "radial-gradient(at 51% 67%, hsla(216,71%,87%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 34% 21%, hsla(214,83%,92%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 56% 37%, hsla(205,100%,98%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 1% 2%, hsla(217,65%,69%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 8% 75%, hsla(217,65%,71%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 67% 94%, hsla(217,65%,73%,1) 0px, transparent 50%)," +
+  "radial-gradient(at 0% 98%, hsla(209,89%,60%,1) 0px, transparent 50%)"
+
+const buttonGradient =
+  "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)"
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [authStep, setAuthStep] = useState<AuthStep>('credentials')
+  const [authStep, setAuthStep] = useState<AuthStep>('splash')
   const [isLogin, setIsLogin] = useState(true)
   
   // Form fields
@@ -33,6 +47,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successUser, setSuccessUser] = useState<AuthUser | null>(null)
+
+  const handleGetStarted = () => {
+    setAuthStep('credentials')
+  }
 
   const handleSubmit = async () => {
     setError('')
@@ -119,28 +137,78 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 mb-4 shadow-2xl">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            </svg>
+  // Splash Screen
+  if (authStep === 'splash') {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{
+          backgroundImage: backgroundGradient,
+          backgroundColor: "#C9D7FF",
+        }}
+      >
+        <div className="relative z-10 flex flex-col items-center justify-center px-6">
+          {/* Logo */}
+          <div className="mb-12">
+            <Image 
+              src="/images/EnrollIQ.png" 
+              alt="EnrollIQ" 
+              width={280} 
+              height={70}
+              priority
+            />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Enroll<span className="text-pink-500">IQ</span>
-          </h1>
-          <p className="text-gray-400">Smart Scholarship Enrollment Platform</p>
+
+          {/* Tagline */}
+          <div className="text-center mb-8 flex flex-col items-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#0B0B0B] mb-3">
+              Smarter Enrollment Starts Here
+            </h2>
+            <p className="text-black/70 text-sm md:text-base md:whitespace-nowrap px-2">
+              EnrollIQ that analyzes, validates, and resolves member eligibility with real-time intelligence.
+            </p>
+          </div>
+
+          {/* Get Started Button */}
+          <button
+            onClick={handleGetStarted}
+            className="group relative px-8 py-4 rounded-xl font-semibold text-white transition-all duration-300 transform hover:-translate-y-0.5"
+            style={{
+              backgroundImage: buttonGradient,
+              boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+            }}
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              Get Started
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </span>
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: backgroundGradient,
+        backgroundColor: "#C9D7FF",
+      }}
+    >
+      <div className="relative z-10 w-full max-w-md px-4">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="mb-2">
+            <Image 
+              src="/images/EnrollIQ.png" 
+              alt="EnrollIQ" 
+              width={180} 
+              height={45}
+              priority
+            />
+          </div>
+          <p className="text-black/70 text-sm">Smart Scholarship Enrollment Platform</p>
         </div>
 
         {/* Main Card */}
@@ -169,7 +237,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Enter your email"
-                      className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all outline-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                     />
                   </div>
                 </div>
@@ -187,7 +255,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         onChange={(e) => setPhone(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Enter phone number"
-                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                       />
                     </div>
                   </div>
@@ -205,7 +273,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Enter your password"
-                      className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all outline-none"
+                      className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                     />
                     <button
                       type="button"
@@ -230,7 +298,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Confirm your password"
-                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                       />
                     </div>
                   </div>
@@ -246,7 +314,11 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl font-semibold transition-all duration-300 disabled:opacity-70"
+                style={{
+                  backgroundImage: buttonGradient,
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -267,15 +339,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     setPassword('')
                     setConfirmPassword('')
                   }}
-                  className="text-pink-400 hover:text-pink-300 font-medium"
+                  className="text-blue-400 hover:text-blue-300 font-medium"
                 >
                   {isLogin ? 'Register' : 'Sign In'}
                 </button>
               </p>
 
               {/* Info box */}
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3">
-                <p className="text-purple-300 text-xs text-center">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                <p className="text-blue-300 text-xs text-center">
                   <Sparkles className="w-3 h-3 inline mr-1" />
                   Your data is saved automatically. Sign in anytime to continue.
                 </p>

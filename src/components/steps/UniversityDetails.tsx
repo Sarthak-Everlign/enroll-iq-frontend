@@ -544,7 +544,7 @@ export default function UniversityDetails({
     <form onSubmit={handleSubmit} className="animate-fade-in">
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-6">
-        <div className="h-6 w-1 bg-gradient-to-b from-red-500 to-pink-500 rounded-full" />
+        <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
         <h2 className="text-xl font-bold text-gray-800">University Details</h2>
       </div>
 
@@ -552,7 +552,7 @@ export default function UniversityDetails({
       <div className="mb-4 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
               <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -598,7 +598,7 @@ export default function UniversityDetails({
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
                   <Link2 className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -766,7 +766,7 @@ export default function UniversityDetails({
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
                   <FileCheck className="w-4 h-4 text-white" />
                 </div>
                 <div>

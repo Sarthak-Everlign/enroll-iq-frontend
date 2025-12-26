@@ -329,11 +329,26 @@ export default function Home() {
   };
 
   if (isLoading) {
+    const backgroundGradient =
+      "radial-gradient(at 51% 67%, hsla(216,71%,87%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 34% 21%, hsla(214,83%,92%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 56% 37%, hsla(205,100%,98%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 1% 2%, hsla(217,65%,69%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 8% 75%, hsla(217,65%,71%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 67% 94%, hsla(217,65%,73%,1) 0px, transparent 50%)," +
+      "radial-gradient(at 0% 98%, hsla(209,89%,60%,1) 0px, transparent 50%)";
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">Loading...</p>
+      <div 
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{
+          backgroundImage: backgroundGradient,
+          backgroundColor: "#C9D7FF",
+        }}
+      >
+        <div className="relative z-10 text-center">
+          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-700 text-lg font-medium">Loading...</p>
         </div>
       </div>
     );

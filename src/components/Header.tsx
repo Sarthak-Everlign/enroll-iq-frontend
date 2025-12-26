@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, X, User, ChevronDown, GraduationCap, Sparkles, LogOut, Settings, FileText } from 'lucide-react'
+import { Menu, X, User, ChevronDown, LogOut } from 'lucide-react'
+import Image from 'next/image'
 
 interface HeaderProps {
   userName?: string
@@ -22,19 +23,14 @@ export default function Header({ userName, onLogout }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-red-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg animate-float">
-                <GraduationCap className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
-              </div>
-              <Sparkles className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">
-                Enroll<span className="gradient-text">IQ</span>
-              </h1>
-              <p className="text-[10px] lg:text-xs text-gray-400 -mt-1">Smart Enrollment Platform</p>
-            </div>
+          <div className="flex items-center">
+            <Image 
+              src="/images/EnrollIQ1.png" 
+              alt="EnrollIQ" 
+              width={140} 
+              height={35}
+              priority
+            />
           </div>
           
           {/* Right Side */}
@@ -43,7 +39,11 @@ export default function Header({ userName, onLogout }: HeaderProps) {
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-lg hover:shadow-xl btn-shine"
+                className="flex items-center gap-2 text-white px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-lg hover:shadow-xl btn-shine"
+                style={{
+                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
               >
                 <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                   <User className="w-4 h-4" />
@@ -66,7 +66,11 @@ export default function Header({ userName, onLogout }: HeaderProps) {
                   <div className="absolute right-0 mt-2 w-64 glass rounded-2xl shadow-2xl border border-white/20 py-2 z-20 animate-fade-in">
                     <div className="px-4 py-3 border-b border-gray-200">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                          style={{
+                            backgroundImage: "linear-gradient(135deg, #3644CF 0%, #85F3FF 100%)",
+                          }}
+                        >
                           {userName ? userName.charAt(0).toUpperCase() : 'A'}
                         </div>
                         <div>

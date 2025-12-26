@@ -268,7 +268,7 @@ export default function PersonalDetails({
   return (
     <form onSubmit={handleSubmit} className="animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
-        <div className="h-8 w-1.5 bg-gradient-to-b from-red-500 to-pink-500 rounded-full" />
+        <div className="h-8 w-1.5 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">Personal Details</h2>
         <Sparkles className="w-5 h-5 text-pink-500" />
       </div>
@@ -428,7 +428,7 @@ export default function PersonalDetails({
         </div>
         <div className="pt-6 border-t border-gray-200">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-6 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+            <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
             <h3 className="text-lg font-semibold text-gray-800">
               Category Information
             </h3>
@@ -450,7 +450,7 @@ export default function PersonalDetails({
 
         <div className="pt-6 border-t border-gray-200">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-6 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+            <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
             <h3 className="text-lg font-semibold text-gray-800">
               Tribal Information
             </h3>
@@ -614,7 +614,11 @@ export default function PersonalDetails({
         <button
           type="submit"
           disabled={isSaving}
-          className="group flex items-center gap-3 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 hover:from-red-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
         >
           {isSaving ? "Saving..." : "Save & Continue"}
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

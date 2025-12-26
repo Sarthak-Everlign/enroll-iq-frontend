@@ -59,9 +59,10 @@ export default function Stepper({ currentStep, onStepClick }: StepperProps) {
           
           {/* Progress Line Active */}
           <div 
-            className="absolute top-7 left-0 h-1 bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 mx-16 rounded-full transition-all duration-500 ease-out"
+            className="absolute top-7 left-0 h-1 mx-16 rounded-full transition-all duration-500 ease-out"
             style={{ 
-              width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - ${currentStep === 1 ? 0 : 2}rem)` 
+              width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - ${currentStep === 1 ? 0 : 2}rem)`,
+              background: 'linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6)'
             }}
           />
 
@@ -80,9 +81,14 @@ export default function Stepper({ currentStep, onStepClick }: StepperProps) {
                   className={clsx(
                     'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg',
                     isCompleted && 'bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-200',
-                    isCurrent && 'bg-gradient-to-br from-red-500 via-pink-500 to-purple-500 text-white shadow-pink-200 scale-110',
                     !isCompleted && !isCurrent && 'bg-white text-gray-400 border-2 border-gray-200'
                   )}
+                  style={isCurrent ? {
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)',
+                    color: 'white',
+                    transform: 'scale(1.1)',
+                    boxShadow: '0 10px 24px rgba(54, 68, 207, 0.35)'
+                  } : undefined}
                 >
                   {isCompleted ? (
                     <Check className="w-6 h-6" strokeWidth={3} />
@@ -96,8 +102,9 @@ export default function Stepper({ currentStep, onStepClick }: StepperProps) {
                   <p
                     className={clsx(
                       'text-xs font-semibold uppercase tracking-wider mb-0.5',
-                      isCurrent ? 'text-pink-600' : isCompleted ? 'text-emerald-600' : 'text-gray-400'
+                      isCompleted ? 'text-emerald-600' : 'text-gray-400'
                     )}
+                    style={isCurrent ? { color: '#3b82f6' } : undefined}
                   >
                     Step {step.id}
                   </p>
@@ -128,10 +135,14 @@ export default function Stepper({ currentStep, onStepClick }: StepperProps) {
                   <div
                     className={clsx(
                       'flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer hover:opacity-80',
-                      isCurrent && 'bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 text-white shadow-lg',
                       isCompleted && 'bg-green-100 text-green-700',
                       !isCompleted && !isCurrent && 'bg-gray-100 text-gray-400'
                     )}
+                    style={isCurrent ? {
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)',
+                      color: 'white',
+                      boxShadow: '0 10px 24px rgba(54, 68, 207, 0.35)'
+                    } : undefined}
                     onClick={() => onStepClick?.(step.id)}
                   >
                     <div className={clsx(

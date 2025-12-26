@@ -5,9 +5,11 @@
 @tailwind utilities;
 
 :root {
-  --gradient-start: #dc2626;
-  --gradient-mid: #be185d;
-  --gradient-end: #9333ea;
+  --gradient-start: #3b82f6;
+  --gradient-mid: #6366f1;
+  --gradient-end: #8b5cf6;
+  --primary-blue: #3644CF;
+  --accent-cyan: #85F3FF;
 }
 
 * {
@@ -21,12 +23,24 @@ html {
 
 body {
   font-family: 'Outfit', system-ui, sans-serif;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   min-height: 100vh;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+/* App background gradient */
+.app-background {
+  background-color: #C9D7FF;
+  background-image: 
+    radial-gradient(at 51% 67%, hsla(216,71%,87%,1) 0px, transparent 50%),
+    radial-gradient(at 34% 21%, hsla(214,83%,92%,1) 0px, transparent 50%),
+    radial-gradient(at 56% 37%, hsla(205,100%,98%,1) 0px, transparent 50%),
+    radial-gradient(at 1% 2%, hsla(217,65%,69%,1) 0px, transparent 50%),
+    radial-gradient(at 8% 75%, hsla(217,65%,71%,1) 0px, transparent 50%),
+    radial-gradient(at 67% 94%, hsla(217,65%,73%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 98%, hsla(209,89%,60%,1) 0px, transparent 50%);
 }
 
 /* Custom scrollbar */
@@ -41,12 +55,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #dc2626, #be185d);
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #b91c1c, #9d174d);
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
 }
 
 /* Glass effect */
@@ -84,6 +98,14 @@ body {
   background-clip: text;
 }
 
+/* Blue gradient text */
+.gradient-text-blue {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* Gradient border */
 .gradient-border {
   position: relative;
@@ -107,7 +129,13 @@ body {
 
 /* Input focus glow */
 .input-glow:focus {
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Button gradient */
+.btn-gradient {
+  background-image: linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%);
+  box-shadow: 0 10px 24px rgba(54, 68, 207, 0.35);
 }
 
 /* Button hover effect */
@@ -191,30 +219,22 @@ body {
 
 .upload-zone:hover,
 .upload-zone.dragover {
-  border-color: #dc2626;
-  background: rgba(220, 38, 38, 0.05);
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
 }
 
 /* Animated background pattern */
 .bg-pattern {
   position: relative;
-}
-
-.bg-pattern::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
+  background-color: #E8EEFF;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(190, 24, 93, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+    radial-gradient(at 51% 67%, hsla(216,71%,92%,1) 0px, transparent 50%),
+    radial-gradient(at 34% 21%, hsla(214,83%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 56% 37%, hsla(205,100%,99%,1) 0px, transparent 50%),
+    radial-gradient(at 1% 2%, hsla(217,65%,85%,1) 0px, transparent 50%),
+    radial-gradient(at 8% 75%, hsla(217,65%,87%,1) 0px, transparent 50%),
+    radial-gradient(at 67% 94%, hsla(217,65%,88%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 98%, hsla(209,89%,80%,1) 0px, transparent 50%);
 }
 
 /* Floating animation */
@@ -258,8 +278,8 @@ body {
 }
 
 .checkbox-custom:checked {
-  background: linear-gradient(135deg, #dc2626, #be185d);
-  border-color: #dc2626;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border-color: #3b82f6;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
   background-position: center;
   background-repeat: no-repeat;

@@ -273,7 +273,7 @@ export default function VideoKYC({
     <div className="animate-fade-in">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="h-8 w-1.5 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
+        <div className="h-8 w-1.5 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">
           Video KYC Verification
         </h2>
@@ -312,7 +312,11 @@ export default function VideoKYC({
 
             <button
               onClick={handleRedoKyc}
-              className="flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+              className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                style={{
+                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
             >
               <RefreshCw className="w-5 h-5" />
               Do KYC Again
@@ -350,9 +354,9 @@ export default function VideoKYC({
           )}
 
           {/* Welcome Card */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-6">
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -380,7 +384,7 @@ export default function VideoKYC({
               <ul className="space-y-4">
                 {instructions.map((instruction, index) => (
                   <li key={index} className="flex items-start gap-4">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
                       {index + 1}
                     </div>
                     <span className="text-gray-700 pt-1">{instruction}</span>
@@ -401,7 +405,7 @@ export default function VideoKYC({
             <div className="p-6">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Sample Reference Image */}
-                <div className="w-64 h-48 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl border-2 border-dashed border-purple-300 flex flex-col items-center justify-center">
+                <div className="w-64 h-48 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl border-2 border-dashed border-blue-300 flex flex-col items-center justify-center">
                   <div className="relative">
                     {/* Face outline */}
                     <div className="w-20 h-24 border-4 border-purple-400 rounded-full" />
@@ -461,7 +465,11 @@ export default function VideoKYC({
                   setStep("capture");
                   startCamera();
                 }}
-                className="flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                style={{
+                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
               >
                 Start Camera
                 <Camera className="w-5 h-5" />
@@ -555,7 +563,11 @@ export default function VideoKYC({
             <button
               onClick={startCapture}
               disabled={!hasPermission || countdown !== null}
-              className="flex items-center gap-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+                }}
             >
               <Camera className="w-6 h-6" />
               Capture Photo
@@ -569,7 +581,7 @@ export default function VideoKYC({
           {/* Captured Image Review */}
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl overflow-hidden shadow-xl border border-gray-200">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-800">
                   Review Your Photo
                 </h3>
