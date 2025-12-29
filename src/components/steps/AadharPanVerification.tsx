@@ -51,7 +51,7 @@ export default function AadharPanVerification({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [aadharValid, setAadharValid] = useState(false);
-  const [panValid, setPanValid] = useState(false);
+  const [panValid, setPanValid] = useState(true);
   const [countdown, setCountdown] = useState(0);
   const [verifiedDetails, setVerifiedDetails] = useState<AadharDetails | null>(
     null
@@ -62,51 +62,50 @@ export default function AadharPanVerification({
   const validPans = testData.panData.validPanNumbers;
   const testOtp = testData.aadharData.aadharOtp;
 
-useEffect(() => {
-  const loadVerificationData = async () => {
-    
-    const res = await getApplication();    
-    if (!res.success || !res.data) {
-      return;
-    }
+  useEffect(() => {
+    const loadVerificationData = async () => {
+      const res = await getApplication();
+      if (!res.success || !res.data) {
+        return;
+      }
 
-    const app = res.data;
-    if (app.aadhaar_verified && app.pan_verified) {
-      
-      setAadharNumber(formatAadhar(app.aadhaar_number ?? ""));
-      setPanNumber(app.pan_number ?? "");
-      setAadharValid(true);
-      setPanValid(true);
+      const app = res.data;
+      if (app.aadhaar_verified && app.pan_verified) {
+        setAadharNumber(formatAadhar(app.aadhaar_number ?? ""));
+        setPanNumber(app.pan_number ?? "");
+        setAadharValid(true);
+        setPanValid(true);
 
-      const dob = app.dob_day && app.dob_month && app.dob_year
-        ? `${app.dob_day}/${app.dob_month}/${app.dob_year}`
-        : "";
+        const dob =
+          app.dob_day && app.dob_month && app.dob_year
+            ? `${app.dob_day}/${app.dob_month}/${app.dob_year}`
+            : "";
 
-      const details: AadharDetails = {
-        aadharNumber: app.aadhaar_number ?? "",
-        panNumber: app.pan_number ?? "",
-        fullName: app.full_name ?? "",
-        fatherName: app.father_name ?? "",
-        dob: dob,
-        gender: app.gender ?? "",
-        address: app.address ?? "",
-        city: app.city ?? "",
-        state: app.state ?? "",
-        pincode: app.pincode ?? "",
-        phone: app.phone ?? "",
-        photo: "",
-      };
+        const details: AadharDetails = {
+          aadharNumber: app.aadhaar_number ?? "",
+          panNumber: app.pan_number ?? "",
+          fullName: app.full_name ?? "",
+          fatherName: app.father_name ?? "",
+          dob: dob,
+          gender: app.gender ?? "",
+          address: app.address ?? "",
+          city: app.city ?? "",
+          state: app.state ?? "",
+          pincode: app.pincode ?? "",
+          phone: app.phone ?? "",
+          photo: "",
+        };
 
-      setVerifiedDetails(details);
+        setVerifiedDetails(details);
 
-      setStep("verified");
-    } else {
-      console.log("⚠️ Not both verified yet");
-    }
-  };
+        setStep("verified");
+      } else {
+        console.log("⚠️ Not both verified yet");
+      }
+    };
 
-  loadVerificationData();
-}, []);
+    loadVerificationData();
+  }, []);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -138,16 +137,16 @@ useEffect(() => {
 
   // Validate PAN format (ABCDE1234F)
   const validatePan = (value: string) => {
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-    if (
-      panRegex.test(value.toUpperCase()) &&
-      validPans.includes(value.toUpperCase())
-    ) {
-      setPanValid(true);
-      return true;
-    }
-    setPanValid(false);
-    return false;
+    // const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    // if (
+    //   panRegex.test(value.toUpperCase()) &&
+    //   validPans.includes(value.toUpperCase())
+    // ) {
+    //   setPanValid(true);
+    return true;
+    // }
+    // setPanValid(false);
+    // return false;
   };
 
   const handleAadharChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,10 +173,10 @@ useEffect(() => {
       return;
     }
 
-    if (!validPans.includes(panNumber)) {
-      setError(`Invalid PAN. Use: ${validPans[0]}`);
-      return;
-    }
+    // if (!validPans.includes(panNumber)) {
+    //   setError(`Invalid PAN. Use: ${validPans[0]}`);
+    //   return;
+    // }
 
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -187,65 +186,65 @@ useEffect(() => {
     setCountdown(30);
   };
 
-const handleVerifyAadharOtp = async () => {
-  setError("");
+  const handleVerifyAadharOtp = async () => {
+    setError("");
 
-  if (aadharOtp !== testOtp) {
-    setError(`Invalid OTP. Use: ${testOtp}`);
-    return;
-  }
+    if (aadharOtp !== testOtp) {
+      setError(`Invalid OTP. Use: ${testOtp}`);
+      return;
+    }
 
-  setLoading(true);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+    setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Get verified details from test data
-  const cleanedAadhar = aadharNumber.replace(/\s/g, "");
-  const aadharDetails =
-    testData.aadharData.aadharDetails[
-      cleanedAadhar as keyof typeof testData.aadharData.aadharDetails
-    ];
+    // Get verified details from test data
+    const cleanedAadhar = aadharNumber.replace(/\s/g, "");
+    const aadharDetails =
+      testData.aadharData.aadharDetails[
+        cleanedAadhar as keyof typeof testData.aadharData.aadharDetails
+      ];
 
-  if (aadharDetails) {
-    const details: AadharDetails = {
-      aadharNumber: cleanedAadhar,
-      panNumber: panNumber,
-      fullName: aadharDetails.fullName,
-      fatherName: aadharDetails.fatherName,
-      dob: aadharDetails.dob,
-      gender: aadharDetails.gender,
-      address: aadharDetails.address,
-      city: aadharDetails.city,
-      state: aadharDetails.state,
-      pincode: aadharDetails.pincode,
-      phone: aadharDetails.phone,
-      photo: aadharDetails.photo,
-    };
-    setVerifiedDetails(details);
-    
-    const dobParts = aadharDetails.dob.split('/');
-    
-    await updateAadharPanVerification({
-      aadhaar_number: cleanedAadhar,
-      aadhaar_verified: true,
-      pan_number: panNumber,
-      pan_verified: true,
-      full_name: aadharDetails.fullName,
-      father_name: aadharDetails.fatherName,
-      dob_day: dobParts[0] || "",
-      dob_month: dobParts[1] || "",
-      dob_year: dobParts[2] || "",
-      gender: aadharDetails.gender,
-      address: aadharDetails.address,
-      city: aadharDetails.city,
-      state: aadharDetails.state,
-      pincode: aadharDetails.pincode,
-      phone: aadharDetails.phone,
-    });
-  }
+    if (aadharDetails) {
+      const details: AadharDetails = {
+        aadharNumber: cleanedAadhar,
+        panNumber: panNumber,
+        fullName: aadharDetails.fullName,
+        fatherName: aadharDetails.fatherName,
+        dob: aadharDetails.dob,
+        gender: aadharDetails.gender,
+        address: aadharDetails.address,
+        city: aadharDetails.city,
+        state: aadharDetails.state,
+        pincode: aadharDetails.pincode,
+        phone: aadharDetails.phone,
+        photo: aadharDetails.photo,
+      };
+      setVerifiedDetails(details);
 
-  setLoading(false);
-  setStep("verified");
-};
+      const dobParts = aadharDetails.dob.split("/");
+
+      await updateAadharPanVerification({
+        aadhaar_number: cleanedAadhar,
+        aadhaar_verified: true,
+        pan_number: panNumber,
+        pan_verified: true,
+        full_name: aadharDetails.fullName,
+        father_name: aadharDetails.fatherName,
+        dob_day: dobParts[0] || "",
+        dob_month: dobParts[1] || "",
+        dob_year: dobParts[2] || "",
+        gender: aadharDetails.gender,
+        address: aadharDetails.address,
+        city: aadharDetails.city,
+        state: aadharDetails.state,
+        pincode: aadharDetails.pincode,
+        phone: aadharDetails.phone,
+      });
+    }
+
+    setLoading(false);
+    setStep("verified");
+  };
 
   const handleContinue = () => {
     if (verifiedDetails) {
@@ -360,7 +359,6 @@ const handleVerifyAadharOtp = async () => {
             <div />
 
             <div className="flex items-center gap-4">
-
               <button
                 onClick={handleSendAadharOtp}
                 disabled={loading || !aadharValid || !panValid}
@@ -492,7 +490,6 @@ const handleVerifyAadharOtp = async () => {
 
             <div className="p-6">
               <div className="flex flex-col md:flex-row gap-6">
-
                 {/* Details Grid */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <DetailItem

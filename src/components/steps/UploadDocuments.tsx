@@ -158,7 +158,7 @@ export default function UploadDocuments({
       // Upload to S3
       const result = await uploadToS3(file, pathMap[documentType], {
         applicationId,
-        fileName: file.name,
+        fileName: documentType,
       });
 
       if (result.success && result.data) {
@@ -656,10 +656,11 @@ export default function UploadDocuments({
           type="submit"
           disabled={isValidating}
           className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg text-white hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                style={{
-                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
-                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
-                }}
+          style={{
+            backgroundImage:
+              "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+            boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+          }}
         >
           {isValidating ? (
             <>

@@ -24,7 +24,7 @@
       "password": "Nyle@123"
     }
   ],
- 
+
   "aadharData": {
     "validAadharNumbers": [
       "123456789012",
@@ -34,7 +34,7 @@
     ],
     "aadharOtp": "112233",
     "aadharDetails": {
-      "123456789012": {
+      "123456789015": {
         "fullName": "Rahul Kumar Sharma",
         "fatherName": "Ramesh Kumar Sharma",
         "dob": "1998-05-15",
@@ -73,7 +73,7 @@
         "phone": "9594117152",
         "photo": "/api/placeholder/150/180"
       },
-      "120422024600": {
+      "123456789012": {
         "fullName": "Nyle Rajay Gaikwad",
         "fatherName": "Rajay Gaikwad",
         "motherName": "Nimisha Gaikwad",
@@ -89,16 +89,11 @@
       }
     }
   },
- 
+
   "panData": {
-    "validPanNumbers": [
-      "ABCDE1234F",
-      "XYZAB5678G",
-      "ETOPK9104C",
-      "CRZPG1169G"
-    ],
+    "validPanNumbers": ["ABCDE1234F", "XYZAB5678G", "ETOPK9104C", "CRZPG1169G"],
     "panDetails": {
-      "ABCDE1234F": {
+      "ABCDE1234F2": {
         "name": "RAHUL KUMAR SHARMA",
         "fatherName": "RAMESH KUMAR SHARMA",
         "dob": "15/05/1998",
@@ -116,7 +111,7 @@
         "dob": "07/04/1999",
         "panType": "Individual"
       },
-      "CRZPG1169G": {
+      "1234567890": {
         "name": "NYLE RAJAY GAIKWAD",
         "fatherName": "RAJAY GAIKWAD",
         "dob": "25/12/1999",
