@@ -30,9 +30,10 @@
       "123456789012",
       "987654321098",
       "262105222807",
-      "120422024600"
+      "120422024600",
+      "234567890123"
     ],
-    "aadharOtp": "112233",
+    "aadharOtp": "123456",
     "aadharDetails": {
       "123456789015": {
         "fullName": "Rahul Kumar Sharma",
@@ -58,13 +59,13 @@
         "phone": "9123456789",
         "photo": "/api/placeholder/150/180"
       },
-      "262105222807": {
+      "234567890123": {
         "fullName": "Harshal Uttam Kapse",
         "fatherName": "Uttam Kapse",
         "motherName": "Ujjwala Kapse",
         "dob": "1999-04-07",
         "gender": "male",
-        "category": "SC (Converted to Buddhism)",
+        "category": "SC",
         "address": "Room No 12, New Natraj Society, Ayodhya Nagri, Manpada Road",
         "city": "Dombivli East",
         "district": "Thane",
@@ -105,7 +106,7 @@
         "dob": "22/08/1999",
         "panType": "Individual"
       },
-      "ETOPK9104C": {
+      "2345678901": {
         "name": "HARSHAL UTTAM KAPSE",
         "fatherName": "UTTAM KAPSE",
         "dob": "07/04/1999",
