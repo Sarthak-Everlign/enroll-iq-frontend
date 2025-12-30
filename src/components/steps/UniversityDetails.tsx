@@ -125,7 +125,7 @@ function Tooltip({
 
 const defaultCourses = [
   { value: "mba", label: "MBA", degreeType: "MBA" },
-  { value: "phd", label: "PHD", degreeType: "PhD" },
+  { value: "phd", label: "phd", degreeType: "PhD" },
   { value: "bachelor", label: "Bachelor's Degree", degreeType: "Bachelor's" },
 ];
 
