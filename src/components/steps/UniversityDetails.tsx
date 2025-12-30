@@ -469,10 +469,10 @@ export default function UniversityDetails({
 
     if (!data.universityId)
       newErrors.universityId = "Please select a university";
-    if (!data.feesPageUrl) newErrors.feesPageUrl = "Please enter fees page URL";
+    // if (!data.feesPageUrl) newErrors.feesPageUrl = "Please enter fees page URL";
     if (!data.course) newErrors.course = "Please select a course";
-    if (!data.offerLetter)
-      newErrors.offerLetter = "Please upload offer letter" as any;
+    // if (!data.offerLetter)
+    //   newErrors.offerLetter = "Please upload offer letter" as any;
     if (!data.totalFees) newErrors.totalFees = "Please enter total fees";
 
     if (Object.keys(newErrors).length > 0) {
@@ -591,10 +591,10 @@ export default function UniversityDetails({
         )}
       </div>
 
-      {/* Step 2 & 3: Fees Page URL and Course Selection - 2 Column Layout */}
+      {/* Step 2: Course Selection */}
       {data.universityId && (
-        <div className="mb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Fees Page URL */}
+        <div className="mb-4">
+          {/* Fees Page URL - COMMENTED OUT
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -653,9 +653,10 @@ export default function UniversityDetails({
               )}
             </div>
           </div>
+          */}
 
           {/* Course Selection */}
-          {data.feesPageUrl && (
+          {(
             <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -755,14 +756,15 @@ export default function UniversityDetails({
                 )}
               </div>
             </div>
-          )}
+          )
+          }
         </div>
       )}
 
-      {/* Step 4 & 5: Offer Letter and Fees - 2 Column Layout */}
+      {/* Step 3: Fees - Single Column Layout */}
       {data.course && (
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Offer Letter Upload */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-1 gap-4">
+          {/* Offer Letter Upload - COMMENTED OUT
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -795,6 +797,7 @@ export default function UniversityDetails({
               <p className="text-red-500 text-xs mt-2">{errors.offerLetter}</p>
             )}
           </div>
+          */}
 
           {/* Fees Input */}
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">

@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Enroll IQ - Smart Enrollment Platform',
   description: 'Streamline your university enrollment process with Enroll IQ',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
