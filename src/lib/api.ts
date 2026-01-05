@@ -1126,3 +1126,139 @@ export async function checkS3DocumentsStatus(
     };
   }
 }
+
+// ============== Document Verification Types ==============
+
+export interface VerifySingleDocumentRequest {
+  application_id: string;
+  document_type: "form16" | "caste_certificate" | "marksheet_10th" | "marksheet_12th" | "marksheet_graduation";
+}
+
+export interface VerifySingleDocumentResponse {
+  success: boolean;
+  application_id: string;
+  document_type: string;
+  verified: boolean;
+  result?: Record<string, any>;
+}
+
+/**
+ * Verify a single document after it has been uploaded to S3
+ * @param applicationId - Application ID
+ * @param documentType - Type of document to verify
+ * @returns Verification result
+ */
+export async function verifySingleDocument(
+  applicationId: string,
+  documentType: "form16" | "caste_certificate" | "marksheet_10th" | "marksheet_12th" | "marksheet_graduation"
+): Promise<VerifySingleDocumentResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/grantor/applications/verify-single-document`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        application_id: applicationId,
+        document_type: documentType,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.detail || result.message || "Verification failed");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Document verification error:", error);
+    return {
+      success: false,
+      application_id: applicationId,
+      document_type: documentType,
+      verified: false,
+      result: {
+        error: error instanceof Error ? error.message : "Verification failed",
+      },
+    };
+  }
+}
+
+// ============== Validation Result Types ==============
+
+export interface GetValidationResultRequest {
+  application_id: string;
+}
+
+export interface ValidationResultDocument {
+  success: boolean;
+  message: string;
+  data?: any;
+  is_eligible: boolean;
+}
+
+export interface ValidationResult {
+  success: boolean;
+  message: string;
+  application_id: string;
+  verification_results: {
+    form16?: ValidationResultDocument;
+    caste_certificate?: ValidationResultDocument;
+    marksheet_10th?: ValidationResultDocument;
+    marksheet_12th?: ValidationResultDocument;
+    marksheet_graduation?: ValidationResultDocument;
+  };
+}
+
+export interface GetValidationResultResponse {
+  success: boolean;
+  message: string;
+  validation_result: ValidationResult | null;
+}
+
+/**
+ * Get validation results for all documents by application ID
+ * @param applicationId - Application ID
+ * @returns Validation results for all documents
+ */
+export async function getValidationResultByApplicationId(
+  applicationId: string
+): Promise<GetValidationResultResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/grantor/applications/get-validation-result-by-application-id`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({
+          application_id: applicationId,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.detail || result.message || "Failed to get validation results"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Get validation result error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to get validation results",
+      validation_result: null,
+    };
+  }
+}

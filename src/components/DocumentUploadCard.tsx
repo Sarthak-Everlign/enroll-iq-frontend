@@ -10,6 +10,8 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { clsx } from "clsx";
 import type { S3UploadResponse, S3FileExistsResponse } from "@/lib/api";
@@ -26,6 +28,12 @@ interface DocumentUploadCardProps {
   applicationId?: string;
   documentPath?: string; // S3 path to check for existing file
   fileName?: string; // Optional filename to check
+  verificationStatus?: {
+    isVerifying: boolean;
+    verified: boolean | null;
+    result?: any;
+    error?: string;
+  };
 }
 
 type UploadStatus =
@@ -47,6 +55,7 @@ export default function DocumentUploadCard({
   applicationId,
   documentPath,
   fileName,
+  verificationStatus,
 }: DocumentUploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -243,23 +252,52 @@ export default function DocumentUploadCard({
 
       {/* Upload Area or File Display */}
       {status === "exists" && existingFile ? (
-        <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <p className="text-xs font-medium text-blue-700 truncate">
-                Already uploaded
+        <div className="space-y-2">
+          <div className="p-3 rounded-lg bg-blue-50 border border-blue-100">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <p className="text-xs font-medium text-blue-700 truncate">
+                  Already uploaded
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleReplaceFile}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-xs font-medium transition-colors flex-shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Replace
+              </button>
+            </div>
+          </div>
+
+          {/* Verification Status for existing files */}
+          {verificationStatus?.verified === true && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <p className="text-xs font-medium text-green-700">
+                Verification successful ✓
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleReplaceFile}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-xs font-medium transition-colors flex-shrink-0"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Replace
-            </button>
-          </div>
+          )}
+
+          {verificationStatus?.verified === false ||
+          verificationStatus?.verified === null ? (
+            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+              <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-red-700">
+                  Verification failed
+                </p>
+                {verificationStatus?.result?.message && (
+                  <p className="text-xs text-red-600 mt-0.5">
+                    {verificationStatus.result.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : status === "idle" ? (
         <div
@@ -349,6 +387,47 @@ export default function DocumentUploadCard({
               <p className="text-xs font-medium text-green-700">
                 Uploaded successfully
               </p>
+            </div>
+          )}
+
+          {/* Verification Status */}
+          {verificationStatus?.isVerifying && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
+              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
+              <p className="text-xs font-medium text-blue-700">
+                Verifying document...
+              </p>
+            </div>
+          )}
+
+          {verificationStatus?.verified === true && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <p className="text-xs font-medium text-green-700">
+                Verification successful ✓
+              </p>
+            </div>
+          )}
+
+          {verificationStatus?.verified === false && (
+            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+              <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-red-700">
+                  Verification failed
+                </p>
+                {verificationStatus?.error && (
+                  <p className="text-xs text-red-600 mt-0.5">
+                    {verificationStatus.error}
+                  </p>
+                )}
+                {verificationStatus?.result && (
+                  <p className="text-xs text-red-600 mt-0.5">
+                    {verificationStatus.result.message ||
+                      "Document does not meet eligibility criteria"}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 

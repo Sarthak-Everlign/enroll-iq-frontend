@@ -144,7 +144,6 @@ const initialDocumentsData: DocumentsFormData = {
   totalFees: "",
 };
 
-
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -327,7 +326,7 @@ export default function Home() {
       "radial-gradient(at 0% 98%, hsla(209,89%,60%,1) 0px, transparent 50%)";
 
     return (
-      <div 
+      <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
         style={{
           backgroundImage: backgroundGradient,

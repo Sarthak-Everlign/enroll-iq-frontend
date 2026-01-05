@@ -28,8 +28,11 @@ import {
   fetchUniversities,
   updateUniversityDetailsWithFile,
   submitApplication,
+  verifySingleDocument,
+  getValidationResultByApplicationId,
   type S3UploadResponse,
   type University,
+  type VerifySingleDocumentResponse,
 } from "@/lib/api";
 import { generateApplicationPDF } from "@/lib/pdfGenerator";
 import { PersonalFormData } from "./PersonalDetails";
@@ -136,7 +139,28 @@ export default function UploadDocuments({
   const [universities, setUniversities] = useState<University[]>([]);
   const [loadingUniversities, setLoadingUniversities] = useState(true);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
-  const [universityErrors, setUniversityErrors] = useState<Record<string, string>>({});
+  const [universityErrors, setUniversityErrors] = useState<
+    Record<string, string>
+  >({});
+
+  // Track verification status for each document
+  const [verificationStatus, setVerificationStatus] = useState<
+    Record<
+      string,
+      {
+        isVerifying: boolean;
+        verified: boolean | null;
+        result?: any;
+        error?: string;
+      }
+    >
+  >({});
+
+  // Track overall application eligibility
+  const [isApplicationEligible, setIsApplicationEligible] = useState<
+    boolean | null
+  >(null);
+  const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
 
   // Fetch universities on mount
   useEffect(() => {
@@ -153,6 +177,106 @@ export default function UploadDocuments({
     }
     loadUniversities();
   }, []);
+
+  // Load validation results on mount
+  useEffect(() => {
+    async function loadValidationResults() {
+      if (!applicationId) return;
+
+      try {
+        const response = await getValidationResultByApplicationId(
+          applicationId
+        );
+
+        if (
+          response.success &&
+          response.validation_result?.verification_results
+        ) {
+          const results = response.validation_result.verification_results;
+          const newVerificationStatus: Record<
+            string,
+            {
+              isVerifying: boolean;
+              verified: boolean | null;
+              result?: any;
+              error?: string;
+            }
+          > = {};
+
+          // Map API results to frontend document types
+          const documentTypeMap: Record<string, string> = {
+            form16: "form16",
+            caste_certificate: "caste",
+            marksheet_10th: "marksheet10th",
+            marksheet_12th: "marksheet12th",
+            marksheet_graduation: "graduation",
+          };
+
+          const apiTypeToDisplayName: Record<string, string> = {
+            form16: "Form 16",
+            caste_certificate: "Caste Certificate",
+            marksheet_10th: "10th Marksheet",
+            marksheet_12th: "12th Marksheet",
+            marksheet_graduation: "Graduation Marksheet",
+          };
+
+          Object.entries(results).forEach(([apiType, result]) => {
+            const frontendType = documentTypeMap[apiType];
+            if (frontendType && result) {
+              newVerificationStatus[frontendType] = {
+                isVerifying: false,
+                verified: result.is_eligible,
+                result: {
+                  message: result.message,
+                  data: result.data,
+                },
+              };
+            }
+          });
+
+          setVerificationStatus(newVerificationStatus);
+
+          // Check eligibility - all required documents must be present and eligible
+          const requiredDocuments = [
+            "form16",
+            "caste_certificate",
+            "marksheet_10th",
+            "marksheet_12th",
+            "marksheet_graduation",
+          ];
+
+          const allDocumentsPresent = requiredDocuments.every(
+            (doc) => results[doc as keyof typeof results]
+          );
+
+          // if (allDocumentsPresent) {
+          const ineligibleDocs: string[] = [];
+          let allEligible: boolean = true;
+
+          requiredDocuments.forEach((doc) => {
+            const result = results[doc as keyof typeof results];
+            if (result && !result.is_eligible) {
+              allEligible = false;
+              ineligibleDocs.push(apiTypeToDisplayName[doc] || doc);
+            }
+          });
+
+          if (allDocumentsPresent || !allEligible) {
+            setIsApplicationEligible(allEligible);
+            setIneligibleDocuments(ineligibleDocs);
+          } else {
+            // Not all documents verified yet
+            setIsApplicationEligible(null);
+            setIneligibleDocuments([]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load validation results:", error);
+      }
+    }
+
+    loadValidationResults();
+  }, [applicationId]);
 
   // Convert universities to options for SearchableSelect
   const universityOptions = universities.map((u) => ({
@@ -241,6 +365,22 @@ export default function UploadDocuments({
         cv: "cv",
       };
 
+      // Map to FastAPI document types
+      const verificationTypeMap: Record<
+        string,
+        | "form16"
+        | "caste_certificate"
+        | "marksheet_10th"
+        | "marksheet_12th"
+        | "marksheet_graduation"
+      > = {
+        form16: "form16",
+        caste: "caste_certificate",
+        marksheet10th: "marksheet_10th",
+        marksheet12th: "marksheet_12th",
+        graduation: "marksheet_graduation",
+      };
+
       // Update local state with file
       onDataChange({
         ...data,
@@ -261,6 +401,81 @@ export default function UploadDocuments({
           [s3KeyMap[documentType]]: result.data.s3Key,
           [s3UrlMap[documentType]]: result.data.s3Url,
         });
+
+        // Verify document if it's one of the verifiable types
+        const verificationType = verificationTypeMap[documentType];
+        if (verificationType && applicationId) {
+          // Set verifying state
+          setVerificationStatus((prev) => ({
+            ...prev,
+            [documentType]: {
+              isVerifying: true,
+              verified: null,
+            },
+          }));
+
+          try {
+            const verificationResult = await verifySingleDocument(
+              applicationId,
+              verificationType
+            );
+
+            setVerificationStatus((prev) => {
+              const updatedStatus = {
+                ...prev,
+                [documentType]: {
+                  isVerifying: false,
+                  verified: verificationResult.verified,
+                  result: verificationResult.result,
+                },
+              };
+
+              // // Check eligibility after verification completes
+              // const requiredDocuments = [
+              //   { key: "form16", name: "Form 16" },
+              //   { key: "caste", name: "Caste Certificate" },
+              //   { key: "marksheet10th", name: "10th Marksheet" },
+              //   { key: "marksheet12th", name: "12th Marksheet" },
+              //   { key: "graduation", name: "Graduation Marksheet" },
+              // ];
+
+              // const allDocumentsPresent = requiredDocuments.every(
+              //   (doc) => updatedStatus[doc.key] !== undefined
+              // );
+
+              // if (allDocumentsPresent) {
+              //   const ineligibleDocs: string[] = [];
+              //   let allEligible = true;
+
+              //   requiredDocuments.forEach((doc) => {
+              //     const status = updatedStatus[doc.key];
+              //     if (status && status.verified === false) {
+              //       allEligible = false;
+              //       ineligibleDocs.push(doc.name);
+              //     }
+              //   });
+
+              //   setIsApplicationEligible(allEligible);
+              //   setIneligibleDocuments(ineligibleDocs);
+              // }
+
+              return updatedStatus;
+            });
+          } catch (error) {
+            console.error(`Verification error for ${documentType}:`, error);
+            setVerificationStatus((prev) => ({
+              ...prev,
+              [documentType]: {
+                isVerifying: false,
+                verified: false,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Verification failed",
+              },
+            }));
+          }
+        }
       }
 
       return result;
@@ -619,6 +834,8 @@ export default function UploadDocuments({
     data.cvS3Key,
   ].filter(Boolean).length;
 
+  console.log(isApplicationEligible);
+
   return (
     <form onSubmit={handleSubmit} className="animate-fade-in">
       {/* Section Header */}
@@ -723,6 +940,7 @@ export default function UploadDocuments({
               onUpload={handleForm16Upload}
               applicationId={applicationId}
               documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/"
+              verificationStatus={verificationStatus.form16}
             />
           </div>
         </div>
@@ -735,7 +953,7 @@ export default function UploadDocuments({
               Caste Certificate
             </h3>
           </div>
-          
+
           {/* Category Dropdown */}
           <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -757,7 +975,7 @@ export default function UploadDocuments({
                 <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
               </Tooltip>
             </div>
-            
+
             <FormSelect
               label=""
               name="category"
@@ -793,7 +1011,7 @@ export default function UploadDocuments({
                   <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
                 </Tooltip>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -835,18 +1053,21 @@ export default function UploadDocuments({
           )}
 
           {/* Caste Certificate Upload - Only show after certificate details are filled */}
-          {data.category && data.casteCertificateNumber && data.casteCertificateIssueDate && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
-              <DocumentUploadCard
-                title={`${data.category} Certificate`}
-                description={`Upload your ${data.category} caste certificate`}
-                icon={<Shield className="w-6 h-6" />}
-                onUpload={handleCasteUpload}
-                applicationId={applicationId}
-                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/"
-              />
-            </div>
-          )}
+          {data.category &&
+            data.casteCertificateNumber &&
+            data.casteCertificateIssueDate && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
+                <DocumentUploadCard
+                  title={`${data.category} Certificate`}
+                  description={`Upload your ${data.category} caste certificate`}
+                  icon={<Shield className="w-6 h-6" />}
+                  onUpload={handleCasteUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/"
+                  verificationStatus={verificationStatus.caste}
+                />
+              </div>
+            )}
         </div>
 
         {/* Academic Documents Section */}
@@ -865,6 +1086,7 @@ export default function UploadDocuments({
               onUpload={handleMarksheet10thUpload}
               applicationId={applicationId}
               documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/"
+              verificationStatus={verificationStatus.marksheet10th}
             />
 
             <DocumentUploadCard
@@ -874,6 +1096,7 @@ export default function UploadDocuments({
               onUpload={handleMarksheet12thUpload}
               applicationId={applicationId}
               documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/"
+              verificationStatus={verificationStatus.marksheet12th}
             />
 
             <div className="lg:col-span-2">
@@ -884,6 +1107,7 @@ export default function UploadDocuments({
                 onUpload={handleGraduationUpload}
                 applicationId={applicationId}
                 documentPath="enroll_iq_files/submission_files/{applicationId}/documents/graduation/"
+                verificationStatus={verificationStatus.graduation}
               />
             </div>
           </div>
@@ -981,7 +1205,9 @@ export default function UploadDocuments({
               </select>
 
               {universityErrors.course && (
-                <p className="text-red-500 text-xs mt-1">{universityErrors.course}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {universityErrors.course}
+                </p>
               )}
             </div>
           )}
@@ -1019,13 +1245,17 @@ export default function UploadDocuments({
                     value={data.totalFees}
                     onChange={handleFeesChange}
                     className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
-                      universityErrors.totalFees ? "border-red-500" : "border-gray-200"
+                      universityErrors.totalFees
+                        ? "border-red-500"
+                        : "border-gray-200"
                     } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
                   />
                 </div>
 
                 {universityErrors.totalFees && (
-                  <p className="text-red-500 text-xs">{universityErrors.totalFees}</p>
+                  <p className="text-red-500 text-xs">
+                    {universityErrors.totalFees}
+                  </p>
                 )}
               </div>
             </div>
@@ -1188,15 +1418,27 @@ export default function UploadDocuments({
             )}
           </button>
 
-          {isApplicationSubmitted ? (
+          {isApplicationSubmitted && isApplicationEligible != false ? (
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
               <CheckCircle2 className="w-4 h-4" />
               Already Submitted
             </div>
+          ) : isApplicationEligible === false ? (
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md">
+                <AlertTriangle className="w-4 h-4" />
+                Application Rejected
+              </div>
+              {ineligibleDocuments.length > 0 && (
+                <p className="text-xs text-red-600 text-right">
+                  Ineligible: {ineligibleDocuments.join(", ")}
+                </p>
+              )}
+            </div>
           ) : (
             <button
               type="submit"
-              disabled={isValidating}
+              disabled={isValidating || isApplicationEligible === null}
               className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg text-white hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{
                 backgroundImage:
