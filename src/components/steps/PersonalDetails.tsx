@@ -66,22 +66,6 @@ const genderOptions = [
   { value: "other", label: "Other" },
 ];
 
-const tribeOptions = [
-  { value: "arrakh", label: "Arrakh" },
-  { value: "bhil", label: "Bhil" },
-  { value: "gond", label: "Gond" },
-  { value: "halba", label: "Halba" },
-  { value: "katkari", label: "Katkari" },
-  { value: "kolam", label: "Kolam" },
-  { value: "korku", label: "Korku" },
-  { value: "mahadev_koli", label: "Mahadev Koli" },
-  { value: "oraon", label: "Oraon" },
-  { value: "pardhi", label: "Pardhi" },
-  { value: "thakur", label: "Thakur" },
-  { value: "varli", label: "Varli" },
-  { value: "other", label: "Other" },
-];
-
 const stateOptions = [
   { value: "maharashtra", label: "Maharashtra" },
   { value: "karnataka", label: "Karnataka" },
@@ -425,94 +409,6 @@ export default function PersonalDetails({
             value={data.motherTongue}
             onChange={handleChange("motherTongue")}
           />
-        </div>
-        <div className="pt-6 border-t border-gray-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              Category Information
-            </h3>
-          </div>
-
-          <FormSelect
-            label="Category"
-            name="category"
-            options={[
-              { value: "SC", label: "SC" },
-              { value: "ST", label: "ST" },
-              { value: "Minority", label: "Minority" },
-              { value: "Open", label: "Open" },
-            ]}
-            value={data.category}
-            onChange={handleChange("category")}
-          />
-        </div>
-
-        <div className="pt-6 border-t border-gray-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-6 w-1 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              Tribal Information
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormInput
-              label="Permanent Visible Mark 1"
-              name="permanentMark1"
-              placeholder="Permanent Visible Mark 1"
-              value={data.permanentMark1}
-              onChange={handleChange("permanentMark1")}
-            />
-            <FormInput
-              label="Permanent Visible Mark 2"
-              name="permanentMark2"
-              placeholder="Permanent Visible Mark 2"
-              value={data.permanentMark2}
-              onChange={handleChange("permanentMark2")}
-            />
-            <FormSelect
-              label="Select Tribe"
-              name="tribe"
-              options={tribeOptions}
-              value={data.tribe}
-              onChange={handleChange("tribe")}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <FormInput
-              label="ST Certificate Number"
-              name="stCertificateNumber"
-              placeholder="ST Certificate Number"
-              value={data.stCertificateNumber}
-              onChange={handleChange("stCertificateNumber")}
-            />
-            <FormInput
-              label="Certificate Issue Date"
-              name="certificateIssueDate"
-              type="date"
-              value={data.certificateIssueDate}
-              onChange={handleChange("certificateIssueDate")}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <FormInput
-              label="Caste Validity Certificate Number"
-              name="casteValidityCertNumber"
-              placeholder="Caste Validity Number"
-              value={data.casteValidityCertNumber}
-              onChange={handleChange("casteValidityCertNumber")}
-            />
-            <FormInput
-              label="Caste Validity Issue Date"
-              name="casteValidityIssueDate"
-              type="date"
-              value={data.casteValidityIssueDate}
-              onChange={handleChange("casteValidityIssueDate")}
-            />
-          </div>
         </div>
 
         <div className="pt-6 border-t border-gray-200">

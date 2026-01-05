@@ -15,9 +15,6 @@ import VideoKYC, { KYCData } from "@/components/steps/VideoKYC";
 import UploadDocuments, {
   DocumentsFormData,
 } from "@/components/steps/UploadDocuments";
-import UniversityDetails, {
-  UniversityFormData,
-} from "@/components/steps/UniversityDetails";
 import {
   getAuthToken,
   getStoredUser,
@@ -134,20 +131,19 @@ const initialDocumentsData: DocumentsFormData = {
   cvS3Url: null,
   noPreviousScholarship: false,
   courseFullTimeEligible: false,
-};
-
-const initialUniversityData: UniversityFormData = {
+  // Category
+  category: "",
+  // Caste certificate details
+  casteCertificateNumber: "",
+  casteCertificateIssueDate: "",
+  // University details
   universityId: null,
   universityName: "",
   course: "",
   courseDegreeType: "",
   totalFees: "",
-  offerLetter: null,
-  feesPageUrl: "",
-  isVerified: false,
-  noPreviousScholarship: false,
-  courseFullTimeEligible: false,
 };
+
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
@@ -164,9 +160,6 @@ export default function Home() {
   const [kycData, setKycData] = useState<KYCData | null>(null);
   const [documentsData, setDocumentsData] =
     useState<DocumentsFormData>(initialDocumentsData);
-  const [universityData, setUniversityData] = useState<UniversityFormData>(
-    initialUniversityData
-  );
 
   const [applicationData, setApplicationData] = useState<Application | null>(
     null
@@ -261,11 +254,10 @@ export default function Home() {
     setPersonalData(initialPersonalData);
     setKycData(null);
     setDocumentsData(initialDocumentsData);
-    setUniversityData(initialUniversityData);
   };
 
   const handleNext = async () => {
-    if (currentStep < 5) {
+    if (currentStep < 4) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       await updateApplicationStep(nextStep);
@@ -306,10 +298,6 @@ export default function Home() {
 
   const handleDocumentsDataChange = (data: DocumentsFormData) => {
     setDocumentsData(data);
-  };
-
-  const handleUniversityDataChange = (data: UniversityFormData) => {
-    setUniversityData(data);
   };
 
   const getPrefillData = (): PrefillData | null => {
@@ -400,16 +388,6 @@ export default function Home() {
             )}
 
             {currentStep === 2 && (
-              <PersonalDetails
-                onNext={handleNext}
-                onBack={handleBack}
-                data={personalData}
-                onDataChange={handlePersonalDataChange}
-                prefillData={getPrefillData()}
-              />
-            )}
-
-            {currentStep === 3 && (
               <VideoKYC
                 onNext={handleKycComplete}
                 onBack={handleBack}
@@ -424,28 +402,22 @@ export default function Home() {
               />
             )}
 
-            {currentStep === 4 && (
-              <UploadDocuments
+            {currentStep === 3 && (
+              <PersonalDetails
                 onNext={handleNext}
                 onBack={handleBack}
-                data={documentsData}
-                onDataChange={handleDocumentsDataChange}
-                personalData={{ fullName: personalData.fullName }}
-                applicationId={
-                  (applicationData as any)?.application_id ||
-                  (applicationData as any)?.id ||
-                  String(applicationData?.id || "")
-                }
+                data={personalData}
+                onDataChange={handlePersonalDataChange}
+                prefillData={getPrefillData()}
               />
             )}
 
-            {currentStep === 5 && (
-              <UniversityDetails
+            {currentStep === 4 && (
+              <UploadDocuments
                 onBack={handleBack}
-                data={universityData}
-                onDataChange={handleUniversityDataChange}
+                data={documentsData}
+                onDataChange={handleDocumentsDataChange}
                 personalData={personalData}
-                documentsData={documentsData}
                 isApplicationSubmitted={isApplicationSubmitted}
                 onSubmissionSuccess={() => setIsApplicationSubmitted(true)}
                 applicationId={

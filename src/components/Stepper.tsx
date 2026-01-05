@@ -24,27 +24,21 @@ const steps: Step[] = [
   },
   {
     id: 2,
-    name: 'Personal Details',
-    description: 'Your Information',
-    icon: <User className="w-5 h-5 lg:w-6 lg:h-6" />,
-  },
-  {
-    id: 3,
     name: 'Video KYC',
     description: 'Face Verification',
     icon: <Video className="w-5 h-5 lg:w-6 lg:h-6" />,
   },
   {
-    id: 4,
-    name: 'Upload Documents',
-    description: 'Required Documents',
-    icon: <FileText className="w-5 h-5 lg:w-6 lg:h-6" />,
+    id: 3,
+    name: 'Personal Details',
+    description: 'Your Information',
+    icon: <User className="w-5 h-5 lg:w-6 lg:h-6" />,
   },
   {
-    id: 5,
-    name: 'University Details',
-    description: 'Course & Fees',
-    icon: <Building2 className="w-5 h-5 lg:w-6 lg:h-6" />,
+    id: 4,
+    name: 'Documents & University',
+    description: 'Upload & Course Details',
+    icon: <FileText className="w-5 h-5 lg:w-6 lg:h-6" />,
   },
 ]
 
