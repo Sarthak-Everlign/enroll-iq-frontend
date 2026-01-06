@@ -83,15 +83,14 @@ export const defaultCourses = [
 ];
 
 export const courseFields = [
-  { value: "Computer Science", label: "Computer Science" },
-  { value: "Electrical Engineering", label: "Electrical Engineering" },
-  { value: "Mechanical Engineering", label: "Mechanical Engineering" },
-  { value: "Civil Engineering", label: "Civil Engineering" },
-  { value: "Business Administration", label: "Business Administration" },
-  { value: "Biotechnology", label: "Biotechnology" },
-  { value: "Chemical Engineering", label: "Chemical Engineering" },
-  { value: "Mathematics", label: "Mathematics" },
-  { value: "Physics", label: "Physics" },
+  { value: "Engineering", label: "Engineering" },
+  { value: "Architecture", label: "Architecture" },
+  { value: "Management", label: "Management" },
+  { value: "Science", label: "Science" },
+  { value: "Commerce/Economics", label: "Commerce/Economics" },
+  { value: "Arts", label: "Arts" },
+  { value: "Law", label: "Law" },
+  { value: "Pharmaceutical Sciences", label: "Pharmaceutical Sciences" },
 ];
 
 export interface DocumentsFormData {
