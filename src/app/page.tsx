@@ -105,6 +105,12 @@ const initialDocumentsData: DocumentsFormData = {
   form16: null,
   form16S3Key: null,
   form16S3Url: null,
+  form16Father: null,
+  form16FatherS3Key: null,
+  form16FatherS3Url: null,
+  form16Mother: null,
+  form16MotherS3Key: null,
+  form16MotherS3Url: null,
   casteCertificate: null,
   casteS3Key: null,
   casteS3Url: null,
@@ -143,6 +149,10 @@ const initialDocumentsData: DocumentsFormData = {
   courseDegreeType: "",
   totalFees: "",
   courseField: "",
+  incomeLessThan8L: "",
+  applicantEarning: "",
+  fatherEarning: "",
+  motherEarning: "",
 };
 
 export default function Home() {
