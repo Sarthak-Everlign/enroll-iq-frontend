@@ -156,11 +156,80 @@ export default function UploadDocuments({
     >
   >({});
 
+  // ─────────────────────────────────────────────
+  // Derived helpers (DO NOT put inside useEffect)
+  // ─────────────────────────────────────────────
+
+  const isEligible = (key: string) =>
+    verificationStatus[key]?.verified === true;
+
+  const exists = (key: string) => verificationStatus[key] !== undefined;
+
+  const sectionVisibility = {
+    caste: () => exists("form16") && isEligible("form16"),
+    academics: () => exists("caste") && isEligible("caste"),
+    otherDetails: () => exists("marksheet12th") && isEligible("marksheet12th"),
+  };
+
+  console.log(sectionVisibility.caste());
+
   // Track overall application eligibility
   const [isApplicationEligible, setIsApplicationEligible] = useState<
     boolean | null
   >(null);
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
+
+  const REQUIRED_DOC_KEYS = [
+    "form16",
+    "caste",
+    "marksheet10th",
+    "marksheet12th",
+    "graduation",
+  ] as const;
+
+  useEffect(() => {
+    if (Object.keys(verificationStatus).length === 0) return;
+
+    let allPresent = true;
+    let allEligible = true;
+    const ineligible: string[] = [];
+
+    for (const key of REQUIRED_DOC_KEYS) {
+      const status = verificationStatus[key];
+
+      if (!status) {
+        allPresent = false;
+        continue; // 🔑 missing ≠ failed
+      }
+
+      if (status.verified === false) {
+        allEligible = false;
+        ineligible.push(key);
+      }
+
+      if (status.verified === null) {
+        allEligible = false; // still processing
+      }
+    }
+
+    // 1️⃣ Rejection dominates
+    if (!allEligible && ineligible.length > 0) {
+      setIsApplicationEligible(false);
+      setIneligibleDocuments(ineligible);
+      return;
+    }
+
+    // 2️⃣ Pending (missing docs, no failures)
+    if (!allPresent) {
+      setIsApplicationEligible(null);
+      setIneligibleDocuments([]);
+      return;
+    }
+
+    // 3️⃣ Fully eligible
+    setIsApplicationEligible(true);
+    setIneligibleDocuments([]);
+  }, [verificationStatus]);
 
   // Fetch universities on mount
   useEffect(() => {
@@ -236,39 +305,39 @@ export default function UploadDocuments({
 
           setVerificationStatus(newVerificationStatus);
 
-          // Check eligibility - all required documents must be present and eligible
-          const requiredDocuments = [
-            "form16",
-            "caste_certificate",
-            "marksheet_10th",
-            "marksheet_12th",
-            "marksheet_graduation",
-          ];
+          // // Check eligibility - all required documents must be present and eligible
+          // const requiredDocuments = [
+          //   "form16",
+          //   "caste_certificate",
+          //   "marksheet_10th",
+          //   "marksheet_12th",
+          //   "marksheet_graduation",
+          // ];
 
-          const allDocumentsPresent = requiredDocuments.every(
-            (doc) => results[doc as keyof typeof results]
-          );
+          // const allDocumentsPresent = requiredDocuments.every(
+          //   (doc) => results[doc as keyof typeof results]
+          // );
 
-          // if (allDocumentsPresent) {
-          const ineligibleDocs: string[] = [];
-          let allEligible: boolean = true;
+          // // if (allDocumentsPresent) {
+          // const ineligibleDocs: string[] = [];
+          // let allEligible: boolean = true;
 
-          requiredDocuments.forEach((doc) => {
-            const result = results[doc as keyof typeof results];
-            if (result && !result.is_eligible) {
-              allEligible = false;
-              ineligibleDocs.push(apiTypeToDisplayName[doc] || doc);
-            }
-          });
+          // requiredDocuments.forEach((doc) => {
+          //   const result = results[doc as keyof typeof results];
+          //   if (result && !result.is_eligible) {
+          //     allEligible = false;
+          //     ineligibleDocs.push(apiTypeToDisplayName[doc] || doc);
+          //   }
+          // });
 
-          if (allDocumentsPresent || !allEligible) {
-            setIsApplicationEligible(allEligible);
-            setIneligibleDocuments(ineligibleDocs);
-          } else {
-            // Not all documents verified yet
-            setIsApplicationEligible(null);
-            setIneligibleDocuments([]);
-          }
+          // if (allDocumentsPresent || !allEligible) {
+          //   setIsApplicationEligible(allEligible);
+          //   setIneligibleDocuments(ineligibleDocs);
+          // } else {
+          //   // Not all documents verified yet
+          //   setIsApplicationEligible(null);
+          //   setIneligibleDocuments([]);
+          // }
         }
       } catch (error) {
         console.error("Failed to load validation results:", error);
@@ -834,8 +903,9 @@ export default function UploadDocuments({
     data.cvS3Key,
   ].filter(Boolean).length;
 
-  console.log(isApplicationEligible);
-
+  console.log("isValidating", isValidating);
+  console.log("isApplicationEligible", isApplicationEligible);
+  console.log("isApplicationSubmitted", isApplicationSubmitted);
   return (
     <form onSubmit={handleSubmit} className="animate-fade-in">
       {/* Section Header */}
@@ -955,107 +1025,41 @@ export default function UploadDocuments({
           </div>
 
           {/* Category Dropdown */}
-          <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-sm">
-                    Select Category
-                    <span className="text-red-500 ml-1">*</span>
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Choose your caste category
-                  </p>
-                </div>
-              </div>
-              <Tooltip content="Select SC or ST category to upload the relevant certificate">
-                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-              </Tooltip>
-            </div>
-
-            <FormSelect
-              label=""
-              name="category"
-              options={[
-                { value: "SC", label: "SC (Scheduled Caste)" },
-                { value: "ST", label: "ST (Scheduled Tribe)" },
-              ]}
-              value={data.category}
-              onChange={handleCategoryChange}
-              placeholder="Select category"
-            />
-          </div>
-
-          {/* Certificate Details - Only show after category is selected */}
-          {data.category && (
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-white" />
+          {sectionVisibility.caste() && (
+            <>
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Select Category
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Choose your caste category
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm">
-                      {data.category} Certificate Details
-                      <span className="text-red-500 ml-1">*</span>
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Enter your certificate information
-                    </p>
-                  </div>
+                  <Tooltip content="Select SC or ST category to upload the relevant certificate">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
                 </div>
-                <Tooltip content="Enter your caste certificate number and issue date as shown on the certificate">
-                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                </Tooltip>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Certificate Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="casteCertificateNumber"
-                    placeholder="Enter certificate number"
-                    value={data.casteCertificateNumber}
-                    onChange={(e) =>
-                      onDataChange({
-                        ...data,
-                        casteCertificateNumber: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-purple-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Issue Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="casteCertificateIssueDate"
-                    value={data.casteCertificateIssueDate}
-                    onChange={(e) =>
-                      onDataChange({
-                        ...data,
-                        casteCertificateIssueDate: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-purple-500 outline-none transition-colors text-sm text-gray-800"
-                  />
-                </div>
+                <FormSelect
+                  label=""
+                  name="category"
+                  options={[
+                    { value: "SC", label: "SC (Scheduled Caste)" },
+                    { value: "ST", label: "ST (Scheduled Tribe)" },
+                  ]}
+                  value={personalData.category}
+                  onChange={handleCategoryChange}
+                  placeholder="Select category"
+                />
               </div>
-            </div>
-          )}
-
-          {/* Caste Certificate Upload - Only show after certificate details are filled */}
-          {data.category &&
-            data.casteCertificateNumber &&
-            data.casteCertificateIssueDate && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
                 <DocumentUploadCard
                   title={`${data.category} Certificate`}
@@ -1067,7 +1071,8 @@ export default function UploadDocuments({
                   verificationStatus={verificationStatus.caste}
                 />
               </div>
-            )}
+            </>
+          )}
         </div>
 
         {/* Academic Documents Section */}
@@ -1078,311 +1083,320 @@ export default function UploadDocuments({
               Academic Documents
             </h3>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <DocumentUploadCard
-              title="10th Marksheet"
-              description="Secondary School Certificate (SSC) marksheet"
-              icon={<FileText className="w-6 h-6" />}
-              onUpload={handleMarksheet10thUpload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/"
-              verificationStatus={verificationStatus.marksheet10th}
-            />
-
-            <DocumentUploadCard
-              title="12th Marksheet"
-              description="Higher Secondary Certificate (HSC) marksheet"
-              icon={<FileText className="w-6 h-6" />}
-              onUpload={handleMarksheet12thUpload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/"
-              verificationStatus={verificationStatus.marksheet12th}
-            />
-
-            <div className="lg:col-span-2">
+          {sectionVisibility.academics() && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <DocumentUploadCard
-                title="Graduation Marksheet"
-                description="Bachelor's degree final year marksheet (if applicable)"
-                icon={<GraduationCap className="w-6 h-6" />}
-                onUpload={handleGraduationUpload}
+                title="10th Marksheet"
+                description="Secondary School Certificate (SSC) marksheet"
+                icon={<FileText className="w-6 h-6" />}
+                onUpload={handleMarksheet10thUpload}
                 applicationId={applicationId}
-                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/graduation/"
-                verificationStatus={verificationStatus.graduation}
+                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/"
+                verificationStatus={verificationStatus.marksheet10th}
               />
-            </div>
-          </div>
-        </div>
 
-        {/* University Details Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <Building2 className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              University Details
-            </h3>
-          </div>
-
-          {/* Step 1: University Selection */}
-          <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 text-sm">
-                    Select Your University
-                    <span className="text-red-500 ml-1">*</span>
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    Choose from 200 partner universities
-                  </p>
-                </div>
-              </div>
-              <Tooltip content="Select the university where you have received admission. We partner with 200+ universities globally.">
-                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-              </Tooltip>
-            </div>
-
-            {loadingUniversities ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
-                <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-                <span className="text-sm text-gray-600">
-                  Loading universities...
-                </span>
-              </div>
-            ) : (
-              <SearchableSelect
-                label="University"
-                name="university"
-                options={universityOptions}
-                value={data.universityId ? String(data.universityId) : ""}
-                onChange={handleUniversityChange}
-                placeholder="Search and select university..."
-                required
-                error={universityErrors.universityId}
+              <DocumentUploadCard
+                title="12th Marksheet"
+                description="Higher Secondary Certificate (HSC) marksheet"
+                icon={<FileText className="w-6 h-6" />}
+                onUpload={handleMarksheet12thUpload}
+                applicationId={applicationId}
+                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/"
+                verificationStatus={verificationStatus.marksheet12th}
               />
-            )}
-          </div>
 
-          {/* Step 2: Course Selection - Only show after university is selected */}
-          {data.universityId && (
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                    <GraduationCap className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm">
-                      Select Your Course/Program
-                      <span className="text-red-500 ml-1">*</span>
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      Select from common programs
-                    </p>
-                  </div>
-                </div>
-                <Tooltip content="Select the specific program you're enrolled in. Required field.">
-                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                </Tooltip>
+              <div className="lg:col-span-2">
+                <DocumentUploadCard
+                  title="Graduation Marksheet"
+                  description="Bachelor's degree final year marksheet (if applicable)"
+                  icon={<GraduationCap className="w-6 h-6" />}
+                  onUpload={handleGraduationUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/graduation/"
+                  verificationStatus={verificationStatus.graduation}
+                />
               </div>
-
-              <select
-                value={data.course}
-                onChange={handleCourseChange}
-                required
-                className={`w-full px-3 py-2.5 rounded-lg border ${
-                  universityErrors.course ? "border-red-500" : "border-gray-200"
-                } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
-              >
-                <option value="">-- Select a program --</option>
-                {defaultCourses.map((course) => (
-                  <option key={course.value} value={course.label}>
-                    {course.label}
-                  </option>
-                ))}
-              </select>
-
-              {universityErrors.course && (
-                <p className="text-red-500 text-xs mt-1">
-                  {universityErrors.course}
-                </p>
-              )}
             </div>
           )}
-
-          {/* Step 3: Fees Input - Only show after course is selected */}
-          {data.course && (
-            <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm">
-                      Enter Total Fees
-                      <span className="text-red-500 ml-1">*</span>
-                    </h3>
-                    <p className="text-xs text-gray-500">Program fees in USD</p>
-                  </div>
-                </div>
-                <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
-                  <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                </Tooltip>
+        </div>
+        {sectionVisibility.otherDetails() && (
+          <>
+            {/* University Details Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  University Details
+                </h3>
               </div>
 
-              <div className="space-y-2">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
-                    $
-                  </span>
-                  <input
-                    type="text"
-                    name="totalFees"
-                    placeholder="Enter total fees in USD"
-                    value={data.totalFees}
-                    onChange={handleFeesChange}
-                    className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
-                      universityErrors.totalFees
-                        ? "border-red-500"
-                        : "border-gray-200"
-                    } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
-                  />
+              {/* Step 1: University Selection */}
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                      <Building2 className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Select Your University
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Choose from 200 partner universities
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip content="Select the university where you have received admission. We partner with 200+ universities globally.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
                 </div>
 
-                {universityErrors.totalFees && (
-                  <p className="text-red-500 text-xs">
-                    {universityErrors.totalFees}
-                  </p>
+                {loadingUniversities ? (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
+                    <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                    <span className="text-sm text-gray-600">
+                      Loading universities...
+                    </span>
+                  </div>
+                ) : (
+                  <SearchableSelect
+                    label="University"
+                    name="university"
+                    options={universityOptions}
+                    value={data.universityId ? String(data.universityId) : ""}
+                    onChange={handleUniversityChange}
+                    placeholder="Search and select university..."
+                    required
+                    error={universityErrors.universityId}
+                  />
                 )}
               </div>
-            </div>
-          )}
 
-          {/* Step 4: Offer Letter Upload - Only show after fees is entered */}
-          {data.totalFees && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
-              <DocumentUploadCard
-                title="Offer Letter"
-                description="From Foreign University (Top 200 QS Ranking)"
-                icon={<Building2 className="w-6 h-6" />}
-                onUpload={handleOfferLetterUpload}
-                applicationId={applicationId}
-                documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
-              />
-            </div>
-          )}
-        </div>
+              {/* Step 2: Course Selection - Only show after university is selected */}
+              {data.universityId && (
+                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                        <GraduationCap className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800 text-sm">
+                          Select Your Course/Program
+                          <span className="text-red-500 ml-1">*</span>
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Select from common programs
+                        </p>
+                      </div>
+                    </div>
+                    <Tooltip content="Select the specific program you're enrolled in. Required field.">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </div>
 
-        {/* Financial Documents Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <CreditCard className="w-5 h-5 text-amber-600" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              Financial Documents
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <DocumentUploadCard
-              title="Bank Passbook"
-              description="First page of bank passbook"
-              icon={<CreditCard className="w-6 h-6" />}
-              onUpload={handleBankPassbookUpload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/"
-            />
-          </div>
-        </div>
+                  <select
+                    value={data.course}
+                    onChange={handleCourseChange}
+                    required
+                    className={`w-full px-3 py-2.5 rounded-lg border ${
+                      universityErrors.course
+                        ? "border-red-500"
+                        : "border-gray-200"
+                    } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
+                  >
+                    <option value="">-- Select a program --</option>
+                    {defaultCourses.map((course) => (
+                      <option key={course.value} value={course.label}>
+                        {course.label}
+                      </option>
+                    ))}
+                  </select>
 
-        {/* Additional Documents Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-            <FileCheck className="w-5 h-5 text-teal-600" />
-            <h3 className="text-lg font-semibold text-gray-800">
-              Additional Documents
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <DocumentUploadCard
-              title="Statement of Purpose"
-              description="SOP document (if required)"
-              icon={<FileText className="w-6 h-6" />}
-              onUpload={handleStatementOfPurposeUpload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/"
-            />
-
-            <DocumentUploadCard
-              title="CV / Resume"
-              description="Curriculum Vitae (if required)"
-              icon={<FileCheck className="w-6 h-6" />}
-              onUpload={handleCvUpload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/cv/"
-            />
-          </div>
-        </div>
-
-        {/* Declarations Section - Show after university details are filled */}
-        {data.course && data.totalFees && (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-              <CheckSquare className="w-5 h-5 text-orange-600" />
-              <h3 className="text-lg font-semibold text-gray-800">
-                Declarations
-                <span className="text-red-500 ml-1">*</span>
-              </h3>
-            </div>
-            <div className="space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={data.noPreviousScholarship}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "noPreviousScholarship",
-                      e.target.checked
-                    )
-                  }
-                  className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
-                    No Previous Foreign Scholarship Taken Declaration
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    I declare that I have not received any previous foreign
-                    scholarship
-                  </p>
+                  {universityErrors.course && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {universityErrors.course}
+                    </p>
+                  )}
                 </div>
-              </label>
+              )}
 
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={data.courseFullTimeEligible}
-                  onChange={(e) =>
-                    handleCheckboxChange(
-                      "courseFullTimeEligible",
-                      e.target.checked
-                    )
-                  }
-                  className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
-                    Course is Full‑time and Eligible
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    I confirm that the course I am applying for is full-time and
-                    eligible for scholarship
-                  </p>
+              {/* Step 3: Fees Input - Only show after course is selected */}
+              {data.course && (
+                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                        <DollarSign className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800 text-sm">
+                          Enter Total Fees
+                          <span className="text-red-500 ml-1">*</span>
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Program fees in USD
+                        </p>
+                      </div>
+                    </div>
+                    <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        name="totalFees"
+                        placeholder="Enter total fees in USD"
+                        value={data.totalFees}
+                        onChange={handleFeesChange}
+                        className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
+                          universityErrors.totalFees
+                            ? "border-red-500"
+                            : "border-gray-200"
+                        } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
+                      />
+                    </div>
+
+                    {universityErrors.totalFees && (
+                      <p className="text-red-500 text-xs">
+                        {universityErrors.totalFees}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </label>
+              )}
+
+              {/* Step 4: Offer Letter Upload - Only show after fees is entered */}
+              {data.totalFees && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
+                  <DocumentUploadCard
+                    title="Offer Letter"
+                    description="From Foreign University (Top 200 QS Ranking)"
+                    icon={<Building2 className="w-6 h-6" />}
+                    onUpload={handleOfferLetterUpload}
+                    applicationId={applicationId}
+                    documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
+                  />
+                </div>
+              )}
             </div>
-          </div>
+
+            {/* Financial Documents Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                <CreditCard className="w-5 h-5 text-amber-600" />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Financial Documents
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <DocumentUploadCard
+                  title="Bank Passbook"
+                  description="First page of bank passbook"
+                  icon={<CreditCard className="w-6 h-6" />}
+                  onUpload={handleBankPassbookUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/"
+                />
+              </div>
+            </div>
+
+            {/* Additional Documents Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                <FileCheck className="w-5 h-5 text-teal-600" />
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Additional Documents
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <DocumentUploadCard
+                  title="Statement of Purpose"
+                  description="SOP document (if required)"
+                  icon={<FileText className="w-6 h-6" />}
+                  onUpload={handleStatementOfPurposeUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/"
+                />
+
+                <DocumentUploadCard
+                  title="CV / Resume"
+                  description="Curriculum Vitae (if required)"
+                  icon={<FileCheck className="w-6 h-6" />}
+                  onUpload={handleCvUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/cv/"
+                />
+              </div>
+            </div>
+
+            {/* Declarations Section - Show after university details are filled */}
+            {data.course && data.totalFees && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                  <CheckSquare className="w-5 h-5 text-orange-600" />
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Declarations
+                    <span className="text-red-500 ml-1">*</span>
+                  </h3>
+                </div>
+                <div className="space-y-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={data.noPreviousScholarship}
+                      onChange={(e) =>
+                        handleCheckboxChange(
+                          "noPreviousScholarship",
+                          e.target.checked
+                        )
+                      }
+                      className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
+                        No Previous Foreign Scholarship Taken Declaration
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        I declare that I have not received any previous foreign
+                        scholarship
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={data.courseFullTimeEligible}
+                      onChange={(e) =>
+                        handleCheckboxChange(
+                          "courseFullTimeEligible",
+                          e.target.checked
+                        )
+                      }
+                      className="mt-1 w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">
+                        Course is Full‑time and Eligible
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        I confirm that the course I am applying for is full-time
+                        and eligible for scholarship
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -1418,7 +1432,7 @@ export default function UploadDocuments({
             )}
           </button>
 
-          {isApplicationSubmitted && isApplicationEligible != false ? (
+          {isApplicationSubmitted && isApplicationEligible === true ? (
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
               <CheckCircle2 className="w-4 h-4" />
               Already Submitted
