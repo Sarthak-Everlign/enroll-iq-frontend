@@ -751,6 +751,7 @@ export async function updateUniversityDetailsWithFile(
   data: {
     application_id: string;
     course_name: string;
+    course_field?: string;
     total_fees_usd: number;
     university_rank?: number;
     fees_page_url: string;
@@ -766,7 +767,8 @@ export async function updateUniversityDetailsWithFile(
     formData.append("application_id", data.application_id);
     
     // Add required form fields
-    formData.append("course_name", data.course_name);
+    formData.append("course_type", data.course_name);
+    formData.append("course_field", data.course_field || "");
     formData.append("total_fees_usd", data.total_fees_usd.toString());
     formData.append("fees_page_url", data.fees_page_url);
     

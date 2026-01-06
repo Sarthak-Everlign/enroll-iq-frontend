@@ -45,6 +45,7 @@ interface UploadDocumentsProps {
   applicationId?: string;
   isApplicationSubmitted?: boolean;
   onSubmissionSuccess?: () => void;
+  applicationData?: any;
 }
 
 // Tooltip component
@@ -76,10 +77,21 @@ function Tooltip({
   );
 }
 
-const defaultCourses = [
-  { value: "mba", label: "MBA", degreeType: "MBA" },
+export const defaultCourses = [
+  { value: "ms", label: "M.S", degreeType: "M.S" },
   { value: "phd", label: "PhD", degreeType: "PhD" },
-  { value: "bachelor", label: "Bachelor's Degree", degreeType: "Bachelor's" },
+];
+
+export const courseFields = [
+  { value: "Computer Science", label: "Computer Science" },
+  { value: "Electrical Engineering", label: "Electrical Engineering" },
+  { value: "Mechanical Engineering", label: "Mechanical Engineering" },
+  { value: "Civil Engineering", label: "Civil Engineering" },
+  { value: "Business Administration", label: "Business Administration" },
+  { value: "Biotechnology", label: "Biotechnology" },
+  { value: "Chemical Engineering", label: "Chemical Engineering" },
+  { value: "Mathematics", label: "Mathematics" },
+  { value: "Physics", label: "Physics" },
 ];
 
 export interface DocumentsFormData {
@@ -123,6 +135,7 @@ export interface DocumentsFormData {
   course: string;
   courseDegreeType: string;
   totalFees: string;
+  courseField: string;
 }
 
 export default function UploadDocuments({
@@ -133,7 +146,9 @@ export default function UploadDocuments({
   applicationId,
   isApplicationSubmitted,
   onSubmissionSuccess,
+  applicationData,
 }: UploadDocumentsProps) {
+  console.log(applicationData);
   const [errors, setErrors] = useState<string[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [universities, setUniversities] = useState<University[]>([]);
@@ -612,6 +627,17 @@ export default function UploadDocuments({
     }
   };
 
+  const handleCourseFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCourse = courseFields.find((c) => c.label === e.target.value);
+    console.log(selectedCourse);
+    if (selectedCourse) {
+      onDataChange({
+        ...data,
+        courseField: selectedCourse.value,
+      });
+    }
+  };
+
   const handleFeesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9.]/g, "");
     onDataChange({
@@ -856,11 +882,13 @@ export default function UploadDocuments({
     }
 
     try {
+      console.log(data.courseField);
       // Save university details
       const updateResult = await updateUniversityDetailsWithFile(
         {
           application_id: applicationId || "",
           course_name: data.course,
+          course_field: data.courseField,
           total_fees_usd: parseFloat(data.totalFees),
           university_rank: selectedUniversity?.rank,
           fees_page_url: "",
@@ -1174,118 +1202,160 @@ export default function UploadDocuments({
               </div>
 
               {/* Step 2: Course Selection - Only show after university is selected */}
-              {data.universityId && (
-                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                        <GraduationCap className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          Select Your Course/Program
-                          <span className="text-red-500 ml-1">*</span>
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Select from common programs
-                        </p>
-                      </div>
+              {/* {data.universityId && ( */}
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-white" />
                     </div>
-                    <Tooltip content="Select the specific program you're enrolled in. Required field.">
-                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                    </Tooltip>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Select Your Course/Program
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Select from common programs
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip content="Select the specific program you're enrolled in. Required field.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
+                </div>
+
+                <select
+                  value={applicationData.course_type || data.course || ""}
+                  onChange={handleCourseChange}
+                  required
+                  className={`w-full px-3 py-2.5 rounded-lg border ${
+                    universityErrors.course
+                      ? "border-red-500"
+                      : "border-gray-200"
+                  } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
+                >
+                  <option value="">-- Select a program --</option>
+                  {defaultCourses.map((course) => (
+                    <option key={course.value} value={course.label}>
+                      {course.label}
+                    </option>
+                  ))}
+                </select>
+
+                {universityErrors.course && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {universityErrors.course}
+                  </p>
+                )}
+              </div>
+              {/* )} */}
+
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Select Your Program
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Select from common programs
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip content="Select the specific program you're enrolled in. Required field.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
+                </div>
+
+                <select
+                  value={applicationData.course_field || data.courseField || ""}
+                  onChange={handleCourseFieldChange}
+                  required
+                  className={`w-full px-3 py-2.5 rounded-lg border  focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
+                >
+                  <option value="">-- Select a program --</option>
+                  {courseFields.map((course) => (
+                    <option key={course.value} value={course.label}>
+                      {course.label}
+                    </option>
+                  ))}
+                </select>
+
+                {universityErrors.course && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {universityErrors.course}
+                  </p>
+                )}
+              </div>
+
+              {/* Step 3: Fees Input - Only show after course is selected */}
+              {/* {data.course && ( */}
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Enter Total Fees
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Program fees in USD
+                      </p>
+                    </div>
+                  </div>
+                  <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      name="totalFees"
+                      placeholder="Enter total fees in USD"
+                      value={data.totalFees}
+                      onChange={handleFeesChange}
+                      className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
+                        universityErrors.totalFees
+                          ? "border-red-500"
+                          : "border-gray-200"
+                      } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
+                    />
                   </div>
 
-                  <select
-                    value={data.course}
-                    onChange={handleCourseChange}
-                    required
-                    className={`w-full px-3 py-2.5 rounded-lg border ${
-                      universityErrors.course
-                        ? "border-red-500"
-                        : "border-gray-200"
-                    } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
-                  >
-                    <option value="">-- Select a program --</option>
-                    {defaultCourses.map((course) => (
-                      <option key={course.value} value={course.label}>
-                        {course.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {universityErrors.course && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {universityErrors.course}
+                  {universityErrors.totalFees && (
+                    <p className="text-red-500 text-xs">
+                      {universityErrors.totalFees}
                     </p>
                   )}
                 </div>
-              )}
-
-              {/* Step 3: Fees Input - Only show after course is selected */}
-              {data.course && (
-                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          Enter Total Fees
-                          <span className="text-red-500 ml-1">*</span>
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Program fees in USD
-                        </p>
-                      </div>
-                    </div>
-                    <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
-                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                    </Tooltip>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
-                        $
-                      </span>
-                      <input
-                        type="text"
-                        name="totalFees"
-                        placeholder="Enter total fees in USD"
-                        value={data.totalFees}
-                        onChange={handleFeesChange}
-                        className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
-                          universityErrors.totalFees
-                            ? "border-red-500"
-                            : "border-gray-200"
-                        } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
-                      />
-                    </div>
-
-                    {universityErrors.totalFees && (
-                      <p className="text-red-500 text-xs">
-                        {universityErrors.totalFees}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
+              </div>
+              {/* )} */}
 
               {/* Step 4: Offer Letter Upload - Only show after fees is entered */}
-              {data.totalFees && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
-                  <DocumentUploadCard
-                    title="Offer Letter"
-                    description="From Foreign University (Top 200 QS Ranking)"
-                    icon={<Building2 className="w-6 h-6" />}
-                    onUpload={handleOfferLetterUpload}
-                    applicationId={applicationId}
-                    documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
-                  />
-                </div>
-              )}
+              {/* {data.totalFees && ( */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
+                <DocumentUploadCard
+                  title="Offer Letter"
+                  description="From Foreign University (Top 200 QS Ranking)"
+                  icon={<Building2 className="w-6 h-6" />}
+                  onUpload={handleOfferLetterUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
+                />
+              </div>
+              {/* )} */}
             </div>
 
             {/* Financial Documents Section */}

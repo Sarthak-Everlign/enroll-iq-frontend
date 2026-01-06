@@ -142,6 +142,7 @@ const initialDocumentsData: DocumentsFormData = {
   course: "",
   courseDegreeType: "",
   totalFees: "",
+  courseField: "",
 };
 
 export default function Home() {
@@ -424,6 +425,7 @@ export default function Home() {
                   (applicationData as any)?.id ||
                   String(applicationData?.id || "")
                 }
+                applicationData={applicationData}
               />
             )}
           </div>
