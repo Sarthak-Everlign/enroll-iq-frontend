@@ -277,7 +277,7 @@ export default function DocumentUploadCard({
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
               <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
               <p className="text-xs font-medium text-green-700">
-                Verification successful ✓
+                Validation successful ✓
               </p>
             </div>
           )}
@@ -288,7 +288,7 @@ export default function DocumentUploadCard({
               <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs font-medium text-red-700">
-                  Verification failed
+                  Validation failed
                 </p>
                 {verificationStatus?.result?.message && (
                   <p className="text-xs text-red-600 mt-0.5">
@@ -395,7 +395,7 @@ export default function DocumentUploadCard({
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
               <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
               <p className="text-xs font-medium text-blue-700">
-                Verifying document...
+                Validating document...
               </p>
             </div>
           )}
@@ -404,7 +404,7 @@ export default function DocumentUploadCard({
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
               <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
               <p className="text-xs font-medium text-green-700">
-                Verification successful ✓
+                Validation successful ✓
               </p>
             </div>
           )}
@@ -414,7 +414,7 @@ export default function DocumentUploadCard({
               <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-xs font-medium text-red-700">
-                  Verification failed
+                  Validation failed
                 </p>
                 {verificationStatus?.error && (
                   <p className="text-xs text-red-600 mt-0.5">
