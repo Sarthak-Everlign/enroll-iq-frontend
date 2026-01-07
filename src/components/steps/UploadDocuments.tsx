@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
+import { updateApplicationCategory } from "@/lib/api";
 import FormSelect from "@/components/FormSelect";
 import {
   ArrowLeft,
@@ -174,6 +175,16 @@ export default function UploadDocuments({
     Record<string, string>
   >({});
 
+  const [categorySaveStatus, setCategorySaveStatus] = useState<{
+    saving: boolean;
+    saved: boolean;
+    error: string | null;
+  }>({
+    saving: false,
+    saved: false,
+    error: null,
+  });
+
   // Track verification status for each document
   const [verificationStatus, setVerificationStatus] = useState<
     Record<
@@ -195,6 +206,32 @@ export default function UploadDocuments({
     verificationStatus[key]?.verified === true;
 
   const exists = (key: string) => verificationStatus[key] !== undefined;
+
+  function DisabledSection({
+    enabled,
+    children,
+  }: {
+    enabled: boolean;
+    children: React.ReactNode;
+  }) {
+    return (
+      <div
+        className={`relative transition-all ${
+          enabled ? "" : "opacity-50 pointer-events-none"
+        }`}
+      >
+        {children}
+
+        {!enabled && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded-full">
+              Complete previous section to enable
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const sectionVisibility = {
     caste: () => exists("form16") && isEligible("form16"),
@@ -598,11 +635,47 @@ export default function UploadDocuments({
   };
 
   // Category change handler
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newCategory = e.target.value;
+
+    // Update local state immediately for responsive UI
     onDataChange({
       ...data,
-      category: e.target.value,
+      category: newCategory,
     });
+
+    if (!applicationId || !newCategory) return;
+
+    setCategorySaveStatus({ saving: true, saved: false, error: null });
+
+    try {
+      const result = await updateApplicationCategory(
+        applicationId,
+        newCategory
+      );
+
+      if (result.success) {
+        setCategorySaveStatus({ saving: false, saved: true, error: null });
+        console.log("✅ Category saved to database:", newCategory);
+
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setCategorySaveStatus((prev) => ({ ...prev, saved: false }));
+        }, 3000);
+      } else {
+        throw new Error(result.message || "Failed to save category");
+      }
+    } catch (error) {
+      console.error("Failed to save category:", error);
+      setCategorySaveStatus({
+        saving: false,
+        saved: false,
+        error:
+          error instanceof Error ? error.message : "Failed to save category",
+      });
+    }
   };
 
   // University handlers
@@ -1222,7 +1295,7 @@ export default function UploadDocuments({
           </div>
 
           {/* Category Dropdown */}
-          {sectionVisibility.caste() && (
+          <DisabledSection enabled={sectionVisibility.caste()}>
             <>
               <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
@@ -1256,6 +1329,28 @@ export default function UploadDocuments({
                   onChange={handleCategoryChange}
                   placeholder="Select category"
                 />
+
+                {/* Save Status Indicator */}
+                {categorySaveStatus.saving && (
+                  <div className="flex items-center gap-2 mt-2 text-blue-600 text-xs">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving category...</span>
+                  </div>
+                )}
+
+                {categorySaveStatus.saved && (
+                  <div className="flex items-center gap-2 mt-2 text-green-600 text-xs">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Category saved successfully</span>
+                  </div>
+                )}
+
+                {categorySaveStatus.error && (
+                  <div className="flex items-center gap-2 mt-2 text-red-600 text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>{categorySaveStatus.error}</span>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
                 <DocumentUploadCard
@@ -1269,7 +1364,7 @@ export default function UploadDocuments({
                 />
               </div>
             </>
-          )}
+          </DisabledSection>
         </div>
 
         {/* Academic Documents Section */}
@@ -1280,7 +1375,7 @@ export default function UploadDocuments({
               3. Academic Documents
             </h3>
           </div>
-          {sectionVisibility.academics() && (
+          <DisabledSection enabled={sectionVisibility.academics()}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <DocumentUploadCard
                 title="10th Marksheet"
@@ -1314,9 +1409,9 @@ export default function UploadDocuments({
                 />
               </div>
             </div>
-          )}
+          </DisabledSection>
         </div>
-        {sectionVisibility.otherDetails() && (
+        <DisabledSection enabled={sectionVisibility.otherDetails()}>
           <>
             {/* University Details Section */}
             <div className="space-y-4">
@@ -1636,7 +1731,7 @@ export default function UploadDocuments({
               </div>
             )}
           </>
-        )}
+        </DisabledSection>
       </div>
 
       {/* Navigation Buttons */}

@@ -543,9 +543,9 @@ export default function AadharPanVerification({
 
             <button
               onClick={handleContinue}
-              className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+              className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 btn-gradient btn-shine"
             >
-              Continue to Personal Details
+              Continue to Video KYC
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

@@ -313,10 +313,11 @@ export default function VideoKYC({
             <button
               onClick={handleRedoKyc}
               className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                style={{
-                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
-                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
-                }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+              }}
             >
               <RefreshCw className="w-5 h-5" />
               Do KYC Again
@@ -332,7 +333,7 @@ export default function VideoKYC({
                   s3Url: existingKycFile.s3Url,
                 });
               }}
-              className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+              className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 btn-gradient btn-shine"
             >
               Continue with Existing KYC
               <ArrowRight className="w-5 h-5" />
@@ -467,7 +468,8 @@ export default function VideoKYC({
                 }}
                 className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                 style={{
-                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                  backgroundImage:
+                    "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
                   boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
                 }}
               >
@@ -564,10 +566,11 @@ export default function VideoKYC({
               onClick={startCapture}
               disabled={!hasPermission || countdown !== null}
               className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundImage: "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
-                  boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
-                }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(#81E5FF -22.92%, rgba(254, 200, 241, 0) 26.73%), radial-gradient(137.13% 253.39% at 76.68% 66.67%, #3644CF 0%, #85F3FF 100%)",
+                boxShadow: "0 10px 24px rgba(54, 68, 207, 0.35)",
+              }}
             >
               <Camera className="w-6 h-6" />
               Capture Photo
@@ -659,7 +662,7 @@ export default function VideoKYC({
             <button
               onClick={handleSubmit}
               disabled={isUploading}
-              className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 btn-gradient btn-shine"
             >
               {isUploading ? (
                 <>

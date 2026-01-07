@@ -1264,3 +1264,30 @@ export async function getValidationResultByApplicationId(
     };
   }
 }
+
+export async function updateApplicationCategory(
+  applicationId: string,
+  category: string
+): Promise<{ success: boolean; message: string; category?: string }> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/grantor/applications/${applicationId}/category`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ category }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update category");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+}
