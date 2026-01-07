@@ -87,7 +87,7 @@ export const courseFields = [
   { value: "Architecture", label: "Architecture" },
   { value: "Management", label: "Management" },
   { value: "Science", label: "Science" },
-  { value: "Commerce/Economics", label: "Commerce/Economics" },
+  { value: "Commerce / Economics", label: "Commerce / Economics" },
   { value: "Arts", label: "Arts" },
   { value: "Law", label: "Law" },
   { value: "Pharmaceutical Sciences", label: "Pharmaceutical Sciences" },
@@ -1252,7 +1252,7 @@ export default function UploadDocuments({
                     { value: "SC", label: "SC (Scheduled Caste)" },
                     { value: "ST", label: "ST (Scheduled Tribe)" },
                   ]}
-                  value={personalData.category}
+                  value={data.category}
                   onChange={handleCategoryChange}
                   placeholder="Select category"
                 />
@@ -1532,7 +1532,7 @@ export default function UploadDocuments({
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                 <CreditCard className="w-5 h-5 text-amber-600" />
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Financial Documents
+                  5. Financial Documents
                 </h3>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1552,7 +1552,7 @@ export default function UploadDocuments({
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                 <FileCheck className="w-5 h-5 text-teal-600" />
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Additional Documents
+                  6. Additional Documents
                 </h3>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
