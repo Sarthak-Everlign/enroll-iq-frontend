@@ -83,15 +83,14 @@ export const defaultCourses = [
 ];
 
 export const courseFields = [
-  { value: "Computer Science", label: "Computer Science" },
-  { value: "Electrical Engineering", label: "Electrical Engineering" },
-  { value: "Mechanical Engineering", label: "Mechanical Engineering" },
-  { value: "Civil Engineering", label: "Civil Engineering" },
-  { value: "Business Administration", label: "Business Administration" },
-  { value: "Biotechnology", label: "Biotechnology" },
-  { value: "Chemical Engineering", label: "Chemical Engineering" },
-  { value: "Mathematics", label: "Mathematics" },
-  { value: "Physics", label: "Physics" },
+  { value: "Engineering", label: "Engineering" },
+  { value: "Architecture", label: "Architecture" },
+  { value: "Management", label: "Management" },
+  { value: "Science", label: "Science" },
+  { value: "Commerce/Economics", label: "Commerce/Economics" },
+  { value: "Arts", label: "Arts" },
+  { value: "Law", label: "Law" },
+  { value: "Pharmaceutical Sciences", label: "Pharmaceutical Sciences" },
 ];
 
 export interface DocumentsFormData {
@@ -99,17 +98,17 @@ export interface DocumentsFormData {
   form16: File | null;
   form16S3Key: string | null;
   form16S3Url: string | null;
-  
+
   // Father Form 16
   form16Father: File | null;
   form16FatherS3Key: string | null;
   form16FatherS3Url: string | null;
-  
+
   // Mother Form 16
   form16Mother: File | null;
   form16MotherS3Key: string | null;
   form16MotherS3Url: string | null;
-  
+
   casteCertificate: File | null;
   casteS3Key: string | null;
   casteS3Url: string | null;
@@ -408,172 +407,172 @@ export default function UploadDocuments({
 
   // Generic upload handler
   const createUploadHandler = (
-  documentType:
-    | "form16"
-    | "form16_father"
-    | "form16_mother"
-    | "caste"
-    | "marksheet10th"
-    | "marksheet12th"
-    | "graduation"
-    | "offerLetter"
-    | "bankPassbook"
-    | "statementOfPurpose"
-    | "cv"
-) => {
-  return async (file: File): Promise<S3UploadResponse> => {
-    const pathMap: Record<string, string> = {
-      form16: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16/`,
-      form16_father: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_father/`,
-      form16_mother: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_mother/`,
-      caste: `enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/`,
-      marksheet10th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/`,
-      marksheet12th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/`,
-      graduation: `enroll_iq_files/submission_files/{applicationId}/documents/graduation/`,
-      offerLetter: `enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/`,
-      bankPassbook: `enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/`,
-      statementOfPurpose: `enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/`,
-      cv: `enroll_iq_files/submission_files/{applicationId}/documents/cv/`,
-    };
-
-    const s3KeyMap: Record<string, keyof DocumentsFormData> = {
-      form16: "form16S3Key",
-      form16_father: "form16FatherS3Key",
-      form16_mother: "form16MotherS3Key",
-      caste: "casteS3Key",
-      marksheet10th: "marksheet10thS3Key",
-      marksheet12th: "marksheet12thS3Key",
-      graduation: "graduationS3Key",
-      offerLetter: "offerLetterS3Key",
-      bankPassbook: "bankPassbookS3Key",
-      statementOfPurpose: "statementOfPurposeS3Key",
-      cv: "cvS3Key",
-    };
-
-    const s3UrlMap: Record<string, keyof DocumentsFormData> = {
-      form16: "form16S3Url",
-      form16_father: "form16FatherS3Url",
-      form16_mother: "form16MotherS3Url",
-      caste: "casteS3Url",
-      marksheet10th: "marksheet10thS3Url",
-      marksheet12th: "marksheet12thS3Url",
-      graduation: "graduationS3Url",
-      offerLetter: "offerLetterS3Url",
-      bankPassbook: "bankPassbookS3Url",
-      statementOfPurpose: "statementOfPurposeS3Url",
-      cv: "cvS3Url",
-    };
-
-    const fileMap: Record<string, keyof DocumentsFormData> = {
-      form16: "form16",
-      form16_father: "form16Father",
-      form16_mother: "form16Mother",
-      caste: "casteCertificate",
-      marksheet10th: "marksheet10th",
-      marksheet12th: "marksheet12th",
-      graduation: "graduationMarksheet",
-      offerLetter: "offerLetter",
-      bankPassbook: "bankPassbook",
-      statementOfPurpose: "statementOfPurpose",
-      cv: "cv",
-    };
-
-    // Map to FastAPI document types
-    const verificationTypeMap: Record<
-      string,
+    documentType:
       | "form16"
       | "form16_father"
       | "form16_mother"
-      | "caste_certificate"
-      | "marksheet_10th"
-      | "marksheet_12th"
-      | "marksheet_graduation"
-    > = {
-      form16: "form16",
-      form16_father: "form16_father",
-      form16_mother: "form16_mother",
-      caste: "caste_certificate",
-      marksheet10th: "marksheet_10th",
-      marksheet12th: "marksheet_12th",
-      graduation: "marksheet_graduation",
-    };  
+      | "caste"
+      | "marksheet10th"
+      | "marksheet12th"
+      | "graduation"
+      | "offerLetter"
+      | "bankPassbook"
+      | "statementOfPurpose"
+      | "cv"
+  ) => {
+    return async (file: File): Promise<S3UploadResponse> => {
+      const pathMap: Record<string, string> = {
+        form16: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16/`,
+        form16_father: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_father/`,
+        form16_mother: `enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_mother/`,
+        caste: `enroll_iq_files/submission_files/{applicationId}/documents/caste_certificate/`,
+        marksheet10th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_10th/`,
+        marksheet12th: `enroll_iq_files/submission_files/{applicationId}/documents/marksheet_12th/`,
+        graduation: `enroll_iq_files/submission_files/{applicationId}/documents/graduation/`,
+        offerLetter: `enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/`,
+        bankPassbook: `enroll_iq_files/submission_files/{applicationId}/documents/bank_passbook/`,
+        statementOfPurpose: `enroll_iq_files/submission_files/{applicationId}/documents/statement_of_purpose/`,
+        cv: `enroll_iq_files/submission_files/{applicationId}/documents/cv/`,
+      };
+
+      const s3KeyMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16S3Key",
+        form16_father: "form16FatherS3Key",
+        form16_mother: "form16MotherS3Key",
+        caste: "casteS3Key",
+        marksheet10th: "marksheet10thS3Key",
+        marksheet12th: "marksheet12thS3Key",
+        graduation: "graduationS3Key",
+        offerLetter: "offerLetterS3Key",
+        bankPassbook: "bankPassbookS3Key",
+        statementOfPurpose: "statementOfPurposeS3Key",
+        cv: "cvS3Key",
+      };
+
+      const s3UrlMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16S3Url",
+        form16_father: "form16FatherS3Url",
+        form16_mother: "form16MotherS3Url",
+        caste: "casteS3Url",
+        marksheet10th: "marksheet10thS3Url",
+        marksheet12th: "marksheet12thS3Url",
+        graduation: "graduationS3Url",
+        offerLetter: "offerLetterS3Url",
+        bankPassbook: "bankPassbookS3Url",
+        statementOfPurpose: "statementOfPurposeS3Url",
+        cv: "cvS3Url",
+      };
+
+      const fileMap: Record<string, keyof DocumentsFormData> = {
+        form16: "form16",
+        form16_father: "form16Father",
+        form16_mother: "form16Mother",
+        caste: "casteCertificate",
+        marksheet10th: "marksheet10th",
+        marksheet12th: "marksheet12th",
+        graduation: "graduationMarksheet",
+        offerLetter: "offerLetter",
+        bankPassbook: "bankPassbook",
+        statementOfPurpose: "statementOfPurpose",
+        cv: "cv",
+      };
+
+      // Map to FastAPI document types
+      const verificationTypeMap: Record<
+        string,
+        | "form16"
+        | "form16_father"
+        | "form16_mother"
+        | "caste_certificate"
+        | "marksheet_10th"
+        | "marksheet_12th"
+        | "marksheet_graduation"
+      > = {
+        form16: "form16",
+        form16_father: "form16_father",
+        form16_mother: "form16_mother",
+        caste: "caste_certificate",
+        marksheet10th: "marksheet_10th",
+        marksheet12th: "marksheet_12th",
+        graduation: "marksheet_graduation",
+      };
 
       // Update local state with file
-          onDataChange({
-      ...data,
-      [fileMap[documentType]]: file,
-    });
-
-    // Upload to S3
-    const result = await uploadToS3(file, pathMap[documentType], {
-      applicationId,
-      fileName: documentType,
-    });
-
-    if (result.success && result.data) {
-      // Update with S3 info
       onDataChange({
         ...data,
         [fileMap[documentType]]: file,
-        [s3KeyMap[documentType]]: result.data.s3Key,
-        [s3UrlMap[documentType]]: result.data.s3Url,
       });
 
-      // Verify document if it's one of the verifiable types
-      const verificationType = verificationTypeMap[documentType];
-      if (verificationType && applicationId) {
-        // Set verifying state
-        setVerificationStatus((prev) => ({
-          ...prev,
-          [documentType]: {
-            isVerifying: true,
-            verified: null,
-          },
-        }));
+      // Upload to S3
+      const result = await uploadToS3(file, pathMap[documentType], {
+        applicationId,
+        fileName: documentType,
+      });
 
-        try {
-          const verificationResult = await verifySingleDocument(
-            applicationId,
-            verificationType as
+      if (result.success && result.data) {
+        // Update with S3 info
+        onDataChange({
+          ...data,
+          [fileMap[documentType]]: file,
+          [s3KeyMap[documentType]]: result.data.s3Key,
+          [s3UrlMap[documentType]]: result.data.s3Url,
+        });
+
+        // Verify document if it's one of the verifiable types
+        const verificationType = verificationTypeMap[documentType];
+        if (verificationType && applicationId) {
+          // Set verifying state
+          setVerificationStatus((prev) => ({
+            ...prev,
+            [documentType]: {
+              isVerifying: true,
+              verified: null,
+            },
+          }));
+
+          try {
+            const verificationResult = await verifySingleDocument(
+              applicationId,
+              verificationType as
                 | "form16"
                 | "caste_certificate"
                 | "marksheet_10th"
                 | "marksheet_12th"
                 | "marksheet_graduation"
-          );
+            );
 
-          setVerificationStatus((prev) => {
-            const updatedStatus = {
+            setVerificationStatus((prev) => {
+              const updatedStatus = {
+                ...prev,
+                [documentType]: {
+                  isVerifying: false,
+                  verified: verificationResult.verified,
+                  result: verificationResult.result,
+                },
+              };
+
+              return updatedStatus;
+            });
+          } catch (error) {
+            console.error(`Verification error for ${documentType}:`, error);
+            setVerificationStatus((prev) => ({
               ...prev,
               [documentType]: {
                 isVerifying: false,
-                verified: verificationResult.verified,
-                result: verificationResult.result,
+                verified: false,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Verification failed",
               },
-            };
-
-            return updatedStatus;
-          });
-        } catch (error) {
-          console.error(`Verification error for ${documentType}:`, error);
-          setVerificationStatus((prev) => ({
-            ...prev,
-            [documentType]: {
-              isVerifying: false,
-              verified: false,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Verification failed",
-            },
-          }));
+            }));
+          }
         }
       }
-    }
 
-    return result;
+      return result;
+    };
   };
-};
 
   const handleForm16Upload = createUploadHandler("form16");
   const handleFatherForm16Upload = createUploadHandler("form16_father");
@@ -1373,51 +1372,51 @@ export default function UploadDocuments({
 
               {/* Step 2: Course Selection - Only show after university is selected */}
               {/* {data.universityId && ( */}
-                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                        <GraduationCap className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          Select Your Course/Program
-                          <span className="text-red-500 ml-1">*</span>
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Select from common programs
-                        </p>
-                      </div>
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-white" />
                     </div>
-                    <Tooltip content="Select the specific program you're enrolled in. Required field.">
-                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                    </Tooltip>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Select Your Course/Program
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Select from common programs
+                      </p>
+                    </div>
                   </div>
-
-                  <select
-                  value={applicationData.course_type || data.course || ""}
-                    onChange={handleCourseChange}
-                    required
-                    className={`w-full px-3 py-2.5 rounded-lg border ${
-                      universityErrors.course
-                        ? "border-red-500"
-                        : "border-gray-200"
-                    } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
-                  >
-                    <option value="">-- Select a program --</option>
-                    {defaultCourses.map((course) => (
-                      <option key={course.value} value={course.label}>
-                        {course.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {universityErrors.course && (
-                    <p className="text-red-500 text-xs mt-1">
-                      {universityErrors.course}
-                    </p>
-                  )}
+                  <Tooltip content="Select the specific program you're enrolled in. Required field.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
                 </div>
+
+                <select
+                  value={applicationData.course_type || data.course || ""}
+                  onChange={handleCourseChange}
+                  required
+                  className={`w-full px-3 py-2.5 rounded-lg border ${
+                    universityErrors.course
+                      ? "border-red-500"
+                      : "border-gray-200"
+                  } focus:border-emerald-500 outline-none transition-colors text-sm text-gray-800`}
+                >
+                  <option value="">-- Select a program --</option>
+                  {defaultCourses.map((course) => (
+                    <option key={course.value} value={course.label}>
+                      {course.label}
+                    </option>
+                  ))}
+                </select>
+
+                {universityErrors.course && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {universityErrors.course}
+                  </p>
+                )}
+              </div>
               {/* )} */}
 
               <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
@@ -1464,67 +1463,67 @@ export default function UploadDocuments({
 
               {/* Step 3: Fees Input - Only show after course is selected */}
               {/* {data.course && ( */}
-                <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800 text-sm">
-                          Enter Total Fees
-                          <span className="text-red-500 ml-1">*</span>
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Program fees in USD
-                        </p>
-                      </div>
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-white" />
                     </div>
-                    <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
-                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                    </Tooltip>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
-                        $
-                      </span>
-                      <input
-                        type="text"
-                        name="totalFees"
-                        placeholder="Enter total fees in USD"
-                        value={data.totalFees}
-                        onChange={handleFeesChange}
-                        className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
-                          universityErrors.totalFees
-                            ? "border-red-500"
-                            : "border-gray-200"
-                        } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
-                      />
-                    </div>
-
-                    {universityErrors.totalFees && (
-                      <p className="text-red-500 text-xs">
-                        {universityErrors.totalFees}
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        Enter Total Fees
+                        <span className="text-red-500 ml-1">*</span>
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Program fees in USD
                       </p>
-                    )}
+                    </div>
                   </div>
+                  <Tooltip content="Enter the total tuition/fees as mentioned in your offer letter.">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                  </Tooltip>
                 </div>
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      name="totalFees"
+                      placeholder="Enter total fees in USD"
+                      value={data.totalFees}
+                      onChange={handleFeesChange}
+                      className={`w-full pl-8 pr-3 py-2.5 rounded-lg border ${
+                        universityErrors.totalFees
+                          ? "border-red-500"
+                          : "border-gray-200"
+                      } focus:border-amber-500 outline-none transition-colors text-sm text-gray-800 placeholder:text-gray-400`}
+                    />
+                  </div>
+
+                  {universityErrors.totalFees && (
+                    <p className="text-red-500 text-xs">
+                      {universityErrors.totalFees}
+                    </p>
+                  )}
+                </div>
+              </div>
               {/* )} */}
 
               {/* Step 4: Offer Letter Upload - Only show after fees is entered */}
               {/* {data.totalFees && ( */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
-                  <DocumentUploadCard
-                    title="Offer Letter"
-                    description="From Foreign University (Top 200 QS Ranking)"
-                    icon={<Building2 className="w-6 h-6" />}
-                    onUpload={handleOfferLetterUpload}
-                    applicationId={applicationId}
-                    documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
-                  />
-                </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in">
+                <DocumentUploadCard
+                  title="Offer Letter"
+                  description="From Foreign University (Top 200 QS Ranking)"
+                  icon={<Building2 className="w-6 h-6" />}
+                  onUpload={handleOfferLetterUpload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
+                />
+              </div>
               {/* )} */}
             </div>
 
