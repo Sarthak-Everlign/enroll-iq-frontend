@@ -91,6 +91,20 @@ export interface VerificationResponse {
   is_eligible?: boolean | null;
 }
 
+export interface OfferLetterVerificationResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    s3_key?: string;
+    university_verification?: {
+      match_reason?: string;
+      matched?: boolean;
+    };
+    [key: string]: any;
+  };
+  is_eligible?: boolean | null;
+}
+
 // ============== API Functions ==============
 
 export async function fetchUniversities(
@@ -1211,6 +1225,7 @@ export interface ValidationResult {
     marksheet_10th?: ValidationResultDocument;
     marksheet_12th?: ValidationResultDocument;
     marksheet_graduation?: ValidationResultDocument;
+    offer_letter?: ValidationResultDocument;
   };
 }
 
@@ -1261,6 +1276,52 @@ export async function getValidationResultByApplicationId(
           ? error.message
           : "Failed to get validation results",
       validation_result: null,
+    };
+  }
+}
+
+/**
+ * Verify offer letter with OCR + LLM + university cross-checking
+ * @param file - The offer letter file to verify
+ * @param universityName - Optional university name for cross-checking
+ * @returns Verification response with eligibility status
+ */
+export async function verifyOfferLetter(
+  file: File,
+  universityName?: string
+): Promise<OfferLetterVerificationResponse> {
+  try {
+    const formData = new FormData();
+    formData.append("document", file);
+    
+    if (universityName) {
+      formData.append("university_name", universityName);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/verify/offer-letter`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.detail || result.message || "Offer letter verification failed"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Offer letter verification error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to verify offer letter",
+      is_eligible: null,
     };
   }
 }

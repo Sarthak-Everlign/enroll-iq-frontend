@@ -283,11 +283,23 @@ export default function DocumentUploadCard({
           )}
 
           {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-              <p className="text-xs font-medium text-green-700">
-                Validation successful ✓
-              </p>
+            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-green-700">
+                  Validation successful ✓
+                </p>
+                {verificationStatus?.result?.universityMatch && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    {verificationStatus.result.universityMatch}
+                  </p>
+                )}
+                {verificationStatus?.result?.data?.university_verification?.match_reason && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    {verificationStatus.result.data.university_verification.match_reason}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -409,11 +421,23 @@ export default function DocumentUploadCard({
           )}
 
           {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
-            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-              <p className="text-xs font-medium text-green-700">
-                Validation successful ✓
-              </p>
+            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-medium text-green-700">
+                  Validation successful ✓
+                </p>
+                {verificationStatus?.result?.universityMatch && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    {verificationStatus.result.universityMatch}
+                  </p>
+                )}
+                {verificationStatus?.result?.data?.university_verification?.match_reason && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    {verificationStatus.result.data.university_verification.match_reason}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
