@@ -34,6 +34,7 @@ interface DocumentUploadCardProps {
     result?: any;
     error?: string;
   };
+  disabled?: boolean;
 }
 
 type UploadStatus =
@@ -56,6 +57,7 @@ export default function DocumentUploadCard({
   documentPath,
   fileName,
   verificationStatus,
+  disabled,
 }: DocumentUploadCardProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -282,42 +284,48 @@ export default function DocumentUploadCard({
             </div>
           )}
 
-          {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
-            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-green-700">
-                  Validation successful ✓
-                </p>
-                {verificationStatus?.result?.universityMatch && (
-                  <p className="text-xs text-green-600 mt-0.5">
-                    {verificationStatus.result.universityMatch}
+          {verificationStatus?.verified === true &&
+            !verificationStatus?.isVerifying && (
+              <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-green-700">
+                    Validation successful ✓
                   </p>
-                )}
-                {verificationStatus?.result?.data?.university_verification?.match_reason && (
-                  <p className="text-xs text-green-600 mt-0.5">
-                    {verificationStatus.result.data.university_verification.match_reason}
-                  </p>
-                )}
+                  {verificationStatus?.result?.universityMatch && (
+                    <p className="text-xs text-green-600 mt-0.5">
+                      {verificationStatus.result.universityMatch}
+                    </p>
+                  )}
+                  {verificationStatus?.result?.data?.university_verification
+                    ?.match_reason && (
+                    <p className="text-xs text-green-600 mt-0.5">
+                      {
+                        verificationStatus.result.data.university_verification
+                          .match_reason
+                      }
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {verificationStatus?.verified === false && !verificationStatus?.isVerifying && (
-            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
-              <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-red-700">
-                  Validation failed
-                </p>
-                {verificationStatus?.result?.message && (
-                  <p className="text-xs text-red-600 mt-0.5">
-                    {verificationStatus.result.message}
+          {verificationStatus?.verified === false &&
+            !verificationStatus?.isVerifying && (
+              <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+                <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-red-700">
+                    Validation failed
                   </p>
-                )}
+                  {verificationStatus?.result?.message && (
+                    <p className="text-xs text-red-600 mt-0.5">
+                      {verificationStatus.result.message}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       ) : status === "idle" ? (
         <div
@@ -333,6 +341,7 @@ export default function DocumentUploadCard({
           )}
         >
           <input
+            disabled={disabled}
             ref={inputRef}
             type="file"
             accept={accept}
@@ -420,48 +429,54 @@ export default function DocumentUploadCard({
             </div>
           )}
 
-          {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
-            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-green-700">
-                  Validation successful ✓
-                </p>
-                {verificationStatus?.result?.universityMatch && (
-                  <p className="text-xs text-green-600 mt-0.5">
-                    {verificationStatus.result.universityMatch}
+          {verificationStatus?.verified === true &&
+            !verificationStatus?.isVerifying && (
+              <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
+                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-green-700">
+                    Validation successful ✓
                   </p>
-                )}
-                {verificationStatus?.result?.data?.university_verification?.match_reason && (
-                  <p className="text-xs text-green-600 mt-0.5">
-                    {verificationStatus.result.data.university_verification.match_reason}
-                  </p>
-                )}
+                  {verificationStatus?.result?.universityMatch && (
+                    <p className="text-xs text-green-600 mt-0.5">
+                      {verificationStatus.result.universityMatch}
+                    </p>
+                  )}
+                  {verificationStatus?.result?.data?.university_verification
+                    ?.match_reason && (
+                    <p className="text-xs text-green-600 mt-0.5">
+                      {
+                        verificationStatus.result.data.university_verification
+                          .match_reason
+                      }
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {verificationStatus?.verified === false && !verificationStatus?.isVerifying && (
-            <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
-              <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs font-medium text-red-700">
-                  Validation failed
-                </p>
-                {verificationStatus?.error && (
-                  <p className="text-xs text-red-600 mt-0.5">
-                    {verificationStatus.error}
+          {verificationStatus?.verified === false &&
+            !verificationStatus?.isVerifying && (
+              <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
+                <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-red-700">
+                    Validation failed
                   </p>
-                )}
-                {verificationStatus?.result && (
-                  <p className="text-xs text-red-600 mt-0.5">
-                    {verificationStatus.result.message ||
-                      "Document does not meet eligibility criteria"}
-                  </p>
-                )}
+                  {verificationStatus?.error && (
+                    <p className="text-xs text-red-600 mt-0.5">
+                      {verificationStatus.error}
+                    </p>
+                  )}
+                  {verificationStatus?.result && (
+                    <p className="text-xs text-red-600 mt-0.5">
+                      {verificationStatus.result.message ||
+                        "Document does not meet eligibility criteria"}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {error && status === "error" && (
             <div className="flex items-center gap-1.5 text-red-500 text-xs px-1">
