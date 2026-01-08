@@ -273,7 +273,16 @@ export default function DocumentUploadCard({
           </div>
 
           {/* Verification Status for existing files */}
-          {verificationStatus?.verified === true && (
+          {verificationStatus?.isVerifying && (
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
+              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
+              <p className="text-xs font-medium text-blue-700">
+                Validating document...
+              </p>
+            </div>
+          )}
+
+          {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
               <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
               <p className="text-xs font-medium text-green-700">
@@ -282,8 +291,7 @@ export default function DocumentUploadCard({
             </div>
           )}
 
-          {verificationStatus?.verified === false ||
-          verificationStatus?.verified === null ? (
+          {verificationStatus?.verified === false && !verificationStatus?.isVerifying && (
             <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
               <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -297,7 +305,7 @@ export default function DocumentUploadCard({
                 )}
               </div>
             </div>
-          ) : null}
+          )}
         </div>
       ) : status === "idle" ? (
         <div
@@ -400,7 +408,7 @@ export default function DocumentUploadCard({
             </div>
           )}
 
-          {verificationStatus?.verified === true && (
+          {verificationStatus?.verified === true && !verificationStatus?.isVerifying && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100">
               <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
               <p className="text-xs font-medium text-green-700">
@@ -409,7 +417,7 @@ export default function DocumentUploadCard({
             </div>
           )}
 
-          {verificationStatus?.verified === false && (
+          {verificationStatus?.verified === false && !verificationStatus?.isVerifying && (
             <div className="flex items-start gap-1.5 px-2 py-1.5 rounded-lg bg-red-50 border border-red-100">
               <XCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
