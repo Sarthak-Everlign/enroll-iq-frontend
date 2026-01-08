@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
-import { updateApplicationCategory } from "@/lib/api";
+import { updateApplicationCategory, updateIncomeDetails } from "@/lib/api";
 import FormSelect from "@/components/FormSelect";
 import {
   ArrowLeft,
@@ -236,17 +236,59 @@ export default function UploadDocuments({
     );
   }
 
+  const saveIncomeDetails = (updatedData: typeof data) => {
+    onDataChange(updatedData);
+
+    if (!applicationId) return;
+
+    updateIncomeDetails(applicationId, {
+      incomeLessThan8L: updatedData.incomeLessThan8L,
+      applicantEarning: updatedData.applicantEarning,
+      fatherEarning: updatedData.fatherEarning,
+      motherEarning: updatedData.motherEarning,
+    }).catch(console.error);
+  };
+
   const sectionVisibility = {
-    caste: () => exists("form16") && isEligible("form16"),
+    caste: () =>
+      verificationStatus.form16?.verified === true ||
+      verificationStatus.form16_father?.verified === true ||
+      verificationStatus.form16_mother?.verified === true,
+
     academics: () => exists("caste") && isEligible("caste"),
     otherDetails: () => exists("marksheet12th") && isEligible("marksheet12th"),
   };
+
+  console.log(sectionVisibility.caste());
 
   // Track overall application eligibility
   const [isApplicationEligible, setIsApplicationEligible] = useState<
     boolean | null
   >(null);
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (applicationData?.income_details) {
+      // Parse income_details if it's a string
+      let incomeDetails = applicationData.income_details;
+      if (typeof incomeDetails === "string") {
+        try {
+          incomeDetails = JSON.parse(incomeDetails);
+        } catch (e) {
+          console.error("Failed to parse income_details:", e);
+          return;
+        }
+      }
+
+      onDataChange({
+        ...data,
+        ...incomeDetails,
+      });
+
+      // also restore rejection UI state
+      setIncomeRejected(incomeDetails.incomeLessThan8L === "no");
+    }
+  }, [applicationData]);
 
   // If application becomes rejected (during validation), trigger submission success to move to step 5
   useEffect(() => {
@@ -289,7 +331,6 @@ export default function UploadDocuments({
   }, [isApplicationEligible, applicationId, onSubmissionSuccess]);
 
   const REQUIRED_DOC_KEYS = [
-    "form16",
     "caste",
     "marksheet10th",
     "marksheet12th",
@@ -984,9 +1025,13 @@ export default function UploadDocuments({
       const documentStatus = result.data;
       const newErrors: string[] = [];
 
-      // Check if Form 16 is uploaded
-      if (!documentStatus.form16?.exists) {
-        newErrors.push("form16");
+      const hasAnyForm16 =
+        documentStatus.form16?.exists ||
+        documentStatus.form16_father?.exists ||
+        documentStatus.form16_mother?.exists;
+
+      if (!hasAnyForm16) {
+        newErrors.push("at_least_one_form16");
       }
 
       // Check if at least one marksheet is uploaded (10th or 12th)
@@ -1255,7 +1300,12 @@ export default function UploadDocuments({
                 Required Documents Missing
               </h4>
               <ul className="text-sm text-amber-700 mt-1 list-disc list-inside space-y-1">
-                {errors.includes("form16") && <li>Form 16 is required</li>}
+                {errors.includes("at_least_one_form16") && (
+                  <li>
+                    At least one Form 16 is required (Applicant, Father, or
+                    Mother)
+                  </li>
+                )}
                 {errors.includes("marksheet") && (
                   <li>At least one marksheet (10th or 12th) is required</li>
                 )}
@@ -1304,10 +1354,12 @@ export default function UploadDocuments({
             value={data.incomeLessThan8L}
             onChange={(e) => {
               const value = e.target.value as "" | "yes" | "no";
-              onDataChange({ ...data, incomeLessThan8L: value });
+              saveIncomeDetails({
+                ...data,
+                incomeLessThan8L: value,
+              });
               setIncomeRejected(value === "no");
             }}
-            placeholder="Select option"
           />
 
           {/* Hard rejection */}
@@ -1319,149 +1371,149 @@ export default function UploadDocuments({
             </div>
           )}
 
-          {/* Applicant income */}
-          {data.incomeLessThan8L === "yes" && (
-            <div>
-              <p className="text-sm font-medium text-gray-800 mb-2">
-                Do you earn?
-              </p>
+          {!incomeRejected && data.incomeLessThan8L === "yes" && (
+            <>
+              {/* Applicant income */}
+              <div>
+                <p className="text-sm font-medium text-gray-800 mb-2">
+                  Do you earn?
+                </p>
 
-              <div className="flex gap-6">
-                {["yes", "no"].map((option) => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="applicantEarning"
-                      value={option}
-                      checked={data.applicantEarning === option}
-                      onChange={(e) =>
-                        onDataChange({
-                          ...data,
-                          applicantEarning: e.target.value as "" | "yes" | "no",
-                        })
-                      }
-                      className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700 capitalize">
-                      {option}
-                    </span>
-                  </label>
-                ))}
+                <div className="flex gap-6">
+                  {["yes", "no"].map((option) => (
+                    <label
+                      key={option}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="applicantEarning"
+                        value={option}
+                        checked={data.applicantEarning === option}
+                        onChange={(e) => {
+                          saveIncomeDetails({
+                            ...data,
+                            applicantEarning: e.target.value as "yes" | "no",
+                          });
+                        }}
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">
+                        {option}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* Applicant Form 16 */}
-          {data.applicantEarning === "yes" && (
-            <DocumentUploadCard
-              title="Applicant Form 16"
-              description="Applicant income certificate"
-              icon={<Receipt className="w-6 h-6" />}
-              required
-              onUpload={handleForm16Upload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16/"
-              verificationStatus={verificationStatus.form16}
-            />
-          )}
+              {/* Applicant Form 16 */}
+              {data.applicantEarning === "yes" && (
+                <DocumentUploadCard
+                  title="Applicant Form 16"
+                  description="Applicant income certificate"
+                  icon={<Receipt className="w-6 h-6" />}
+                  required
+                  onUpload={handleForm16Upload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16/"
+                  verificationStatus={verificationStatus.form16}
+                />
+              )}
 
-          {/* Father income */}
-          {data.incomeLessThan8L === "yes" && (
-            <div>
-              <p className="text-sm font-medium text-gray-800 mb-2">
-                Does your father earn?
-              </p>
+              {/* Father income */}
+              <div>
+                <p className="text-sm font-medium text-gray-800 mb-2">
+                  Does your father earn?
+                </p>
 
-              <div className="flex gap-6">
-                {["yes", "no"].map((option) => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="fatherEarning"
-                      value={option}
-                      checked={data.fatherEarning === option}
-                      onChange={(e) =>
-                        onDataChange({
-                          ...data,
-                          fatherEarning: e.target.value as "" | "yes" | "no",
-                        })
-                      }
-                      className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700 capitalize">
-                      {option}
-                    </span>
-                  </label>
-                ))}
+                <div className="flex gap-6">
+                  {["yes", "no"].map((option) => (
+                    <label
+                      key={option}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="fatherEarning"
+                        value={option}
+                        checked={data.fatherEarning === option}
+                        onChange={(e) => {
+                          saveIncomeDetails({
+                            ...data,
+                            fatherEarning: e.target.value as "yes" | "no",
+                          });
+                        }}
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">
+                        {option}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {/* Father Form 16 */}
-          {data.fatherEarning === "yes" && (
-            <DocumentUploadCard
-              title="Father's Form 16"
-              description="Father's income certificate"
-              icon={<Receipt className="w-6 h-6" />}
-              required
-              onUpload={handleFatherForm16Upload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_father/"
-              verificationStatus={verificationStatus.form16_father}
-            />
-          )}
 
-          {/* Mother income */}
-          {data.incomeLessThan8L === "yes" && (
-            <div>
-              <p className="text-sm font-medium text-gray-800 mb-2">
-                Does your mother earn?
-              </p>
+              {/* Father Form 16 */}
+              {data.fatherEarning === "yes" && (
+                <DocumentUploadCard
+                  title="Father's Form 16"
+                  description="Father's income certificate"
+                  icon={<Receipt className="w-6 h-6" />}
+                  required
+                  onUpload={handleFatherForm16Upload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_father/"
+                  verificationStatus={verificationStatus.form16_father}
+                />
+              )}
 
-              <div className="flex gap-6">
-                {["yes", "no"].map((option) => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="motherEarning"
-                      value={option}
-                      checked={data.motherEarning === option}
-                      onChange={(e) =>
-                        onDataChange({
-                          ...data,
-                          motherEarning: e.target.value as "" | "yes" | "no",
-                        })
-                      }
-                      className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700 capitalize">
-                      {option}
-                    </span>
-                  </label>
-                ))}
+              {/* Mother income */}
+              <div>
+                <p className="text-sm font-medium text-gray-800 mb-2">
+                  Does your mother earn?
+                </p>
+
+                <div className="flex gap-6">
+                  {["yes", "no"].map((option) => (
+                    <label
+                      key={option}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="motherEarning"
+                        value={option}
+                        checked={data.motherEarning === option}
+                        onChange={(e) => {
+                          saveIncomeDetails({
+                            ...data,
+                            motherEarning: e.target.value as "yes" | "no",
+                          });
+                        }}
+                        className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">
+                        {option}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {/* Mother Form 16 */}
-          {data.motherEarning === "yes" && (
-            <DocumentUploadCard
-              title="Mother's Form 16"
-              description="Mother's income certificate"
-              icon={<Receipt className="w-6 h-6" />}
-              required
-              onUpload={handleMotherForm16Upload}
-              applicationId={applicationId}
-              documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_mother/"
-              verificationStatus={verificationStatus.form16_mother}
-            />
+
+              {/* Mother Form 16 */}
+              {data.motherEarning === "yes" && (
+                <DocumentUploadCard
+                  title="Mother's Form 16"
+                  description="Mother's income certificate"
+                  icon={<Receipt className="w-6 h-6" />}
+                  required
+                  onUpload={handleMotherForm16Upload}
+                  applicationId={applicationId}
+                  documentPath="enroll_iq_files/submission_files/{applicationId}/documents/form16/form16_mother/"
+                  verificationStatus={verificationStatus.form16_mother}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -1972,22 +2024,28 @@ export default function UploadDocuments({
               <CheckCircle2 className="w-4 h-4" />
               Already Submitted
             </div>
-          ) : isApplicationEligible === false ? (
+          ) : incomeRejected || isApplicationEligible === false ? (
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md">
                 <AlertTriangle className="w-4 h-4" />
                 Application Rejected
               </div>
-              {ineligibleDocuments.length > 0 && (
+              {incomeRejected ? (
+                <p className="text-xs text-red-600 text-right">
+                  Reason: Income exceeds ₹8 Lakhs
+                </p>
+              ) : ineligibleDocuments.length > 0 ? (
                 <p className="text-xs text-red-600 text-right">
                   Ineligible: {ineligibleDocuments.join(", ")}
                 </p>
-              )}
+              ) : null}
             </div>
           ) : (
             <button
               type="submit"
-              disabled={isValidating || isApplicationEligible === null}
+              disabled={
+                isValidating || isApplicationEligible === null || incomeRejected
+              }
               className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg text-white hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{
                 backgroundImage:

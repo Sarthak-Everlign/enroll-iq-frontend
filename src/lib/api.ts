@@ -1352,3 +1352,25 @@ export async function updateApplicationCategory(
     throw error;
   }
 }
+
+export async function updateIncomeDetails(
+  applicationId: string,
+  incomeDetails: Record<string, any>
+): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/grantor/applications/${applicationId}/income-details`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ income_details: incomeDetails }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update income details");
+  }
+
+  return response.json();
+}
