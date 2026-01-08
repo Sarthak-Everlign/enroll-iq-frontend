@@ -167,7 +167,6 @@ export default function UploadDocuments({
 }: UploadDocumentsProps) {
   const hasShownSummaryRedirect = useRef(false);
 
-  
   console.log(applicationData);
   const [errors, setErrors] = useState<string[]>([]);
   const [isValidating, setIsValidating] = useState(false);
@@ -409,11 +408,12 @@ export default function UploadDocuments({
             const frontendType = documentTypeMap[apiType];
             if (frontendType && result) {
               // For offer letters, extract university verification details
-              const universityVerification = result.data?.university_verification;
-              const matchReason = universityVerification?.match_reason 
-              // || 
+              const universityVerification =
+                result.data?.university_verification;
+              const matchReason = universityVerification?.match_reason;
+              // ||
               //                   (universityVerification?.matched ? "Universities match" : null);
-              
+
               newVerificationStatus[frontendType] = {
                 isVerifying: false,
                 verified: result.is_eligible,
@@ -671,9 +671,11 @@ export default function UploadDocuments({
   const handleMarksheet10thUpload = createUploadHandler("marksheet10th");
   const handleMarksheet12thUpload = createUploadHandler("marksheet12th");
   const handleGraduationUpload = createUploadHandler("graduation");
-  
+
   // Special handler for offer letter that uses the dedicated verification endpoint
-  const handleOfferLetterUpload = async (file: File): Promise<S3UploadResponse> => {
+  const handleOfferLetterUpload = async (
+    file: File
+  ): Promise<S3UploadResponse> => {
     // Update local state with file
     onDataChange({
       ...data,
@@ -699,10 +701,10 @@ export default function UploadDocuments({
       if (verificationResult.success && verificationResult.data) {
         // Update with S3 info from verification response
         // Note: S3 URL construction may need adjustment based on your S3 setup
-        const s3Url = verificationResult.data.s3_key 
+        const s3Url = verificationResult.data.s3_key
           ? verificationResult.data.s3_url || null
           : null;
-        
+
         onDataChange({
           ...data,
           offerLetter: file,
@@ -710,21 +712,27 @@ export default function UploadDocuments({
           offerLetterS3Url: s3Url,
         });
 
-        // Determine verification status: 
-        // Backend returns is_eligible, but if verification is successful (success=true and positive message), 
+        // Determine verification status:
+        // Backend returns is_eligible, but if verification is successful (success=true and positive message),
         // treat as eligible even if is_eligible is null/undefined
-        const isEligible = verificationResult.is_eligible !== undefined && verificationResult.is_eligible !== null
-          ? verificationResult.is_eligible 
-          : verificationResult.success && 
-            (verificationResult.message?.toLowerCase().includes("success") ||
-             verificationResult.message?.toLowerCase().includes("processed successfully"))
-            ? true 
+        const isEligible =
+          verificationResult.is_eligible !== undefined &&
+          verificationResult.is_eligible !== null
+            ? verificationResult.is_eligible
+            : verificationResult.success &&
+              (verificationResult.message?.toLowerCase().includes("success") ||
+                verificationResult.message
+                  ?.toLowerCase()
+                  .includes("processed successfully"))
+            ? true
             : null;
 
         // Extract university verification details if available
-        const universityVerification = verificationResult.data?.university_verification;
-        const matchReason = universityVerification?.match_reason || 
-                          (universityVerification?.matched ? "Universities match" : null);
+        const universityVerification =
+          verificationResult.data?.university_verification;
+        const matchReason =
+          universityVerification?.match_reason ||
+          (universityVerification?.matched ? "Universities match" : null);
 
         // Update verification status
         setVerificationStatus((prev) => ({
@@ -743,7 +751,9 @@ export default function UploadDocuments({
         // Return success response
         return {
           success: true,
-          message: verificationResult.message || "Offer letter uploaded and verified successfully",
+          message:
+            verificationResult.message ||
+            "Offer letter uploaded and verified successfully",
           data: {
             s3Key: verificationResult.data.s3_key || "",
             s3Url: s3Url || "",
@@ -753,7 +763,9 @@ export default function UploadDocuments({
           },
         };
       } else {
-        throw new Error(verificationResult.message || "Offer letter verification failed");
+        throw new Error(
+          verificationResult.message || "Offer letter verification failed"
+        );
       }
     } catch (error) {
       console.error("Offer letter verification error:", error);
@@ -762,10 +774,7 @@ export default function UploadDocuments({
         offerLetter: {
           isVerifying: false,
           verified: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Verification failed",
+          error: error instanceof Error ? error.message : "Verification failed",
         },
       }));
 
@@ -1155,7 +1164,7 @@ export default function UploadDocuments({
       }
 
       alert("Application submitted successfully!");
-      
+
       // Mark that we've shown the redirect
       const storageKey = applicationId
         ? `summaryRedirectShown_${applicationId}`
@@ -1167,7 +1176,7 @@ export default function UploadDocuments({
       } catch (e) {
         // ignore
       }
-      
+
       onSubmissionSuccess?.();
     } catch (error) {
       console.error("Submission error:", error);
@@ -1468,7 +1477,7 @@ export default function UploadDocuments({
           </div>
 
           {/* Category Dropdown */}
-          <DisabledSection enabled={sectionVisibility.caste()}>
+          {sectionVisibility.caste() && (
             <>
               <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
@@ -1537,7 +1546,7 @@ export default function UploadDocuments({
                 />
               </div>
             </>
-          </DisabledSection>
+          )}
         </div>
 
         {/* Academic Documents Section */}
@@ -1548,7 +1557,7 @@ export default function UploadDocuments({
               3. Academic Documents
             </h3>
           </div>
-          <DisabledSection enabled={sectionVisibility.academics()}>
+          {sectionVisibility.academics() && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <DocumentUploadCard
                 title="10th Marksheet"
@@ -1582,9 +1591,9 @@ export default function UploadDocuments({
                 />
               </div>
             </div>
-          </DisabledSection>
+          )}
         </div>
-        <DisabledSection enabled={sectionVisibility.otherDetails()}>
+        {sectionVisibility.otherDetails() && (
           <>
             {/* University Details Section */}
             <div className="space-y-4">
@@ -1905,7 +1914,7 @@ export default function UploadDocuments({
               </div>
             )}
           </>
-        </DisabledSection>
+        )}
       </div>
 
       {/* Navigation Buttons */}
