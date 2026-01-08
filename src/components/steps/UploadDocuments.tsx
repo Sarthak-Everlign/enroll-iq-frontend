@@ -487,6 +487,8 @@ export default function UploadDocuments({
         | "marksheet_10th"
         | "marksheet_12th"
         | "marksheet_graduation"
+        | "offer_letter"
+
       > = {
         form16: "form16",
         form16_father: "form16_father",
@@ -495,6 +497,7 @@ export default function UploadDocuments({
         marksheet10th: "marksheet_10th",
         marksheet12th: "marksheet_12th",
         graduation: "marksheet_graduation",
+        offerLetter: "offer_letter",
       };
 
       // Update local state with file
@@ -539,6 +542,7 @@ export default function UploadDocuments({
                 | "marksheet_10th"
                 | "marksheet_12th"
                 | "marksheet_graduation"
+                | "offer_letter"
             );
 
             setVerificationStatus((prev) => {
@@ -1522,6 +1526,7 @@ export default function UploadDocuments({
                   onUpload={handleOfferLetterUpload}
                   applicationId={applicationId}
                   documentPath="enroll_iq_files/submission_files/{applicationId}/documents/offer_letter/"
+                  verificationStatus={verificationStatus.offerLetter}
                 />
               </div>
               {/* )} */}
