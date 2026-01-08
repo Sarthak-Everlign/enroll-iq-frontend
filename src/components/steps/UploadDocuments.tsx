@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
 import { updateApplicationCategory } from "@/lib/api";
@@ -165,7 +164,6 @@ export default function UploadDocuments({
   onSubmissionSuccess,
   applicationData,
 }: UploadDocumentsProps) {
-  const router = useRouter();
   const hasShownSummaryRedirect = useRef(false);
 
   
@@ -252,7 +250,7 @@ export default function UploadDocuments({
   >(null);
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
 
-  // If application becomes rejected or submitted, show popup and redirect to summary
+  // If application becomes rejected (during validation), trigger submission success to move to step 5
   useEffect(() => {
     if (hasShownSummaryRedirect.current) return;
 
@@ -274,7 +272,7 @@ export default function UploadDocuments({
       // ignore sessionStorage access errors
     }
 
-    const showAndRecord = (message: string) => {
+    const recordAndNavigate = () => {
       hasShownSummaryRedirect.current = true;
       try {
         if (storageKey && typeof window !== "undefined") {
@@ -283,18 +281,14 @@ export default function UploadDocuments({
       } catch (e) {
         // ignore
       }
-      setTimeout(() => {
-        window.alert(message);
-        router.push("/summary");
-      }, 300);
+      onSubmissionSuccess?.();
     };
 
+    // Only trigger for rejection detection - submission is handled in handleSubmit
     if (isApplicationEligible === false) {
-      showAndRecord("Application is Rejected redirecting to Summary Page");
-    } else if (isApplicationSubmitted) {
-      showAndRecord("Application submitted redirecting to Summary Page");
+      recordAndNavigate();
     }
-  }, [isApplicationEligible, isApplicationSubmitted, router, applicationId]);
+  }, [isApplicationEligible, applicationId, onSubmissionSuccess]);
 
   const REQUIRED_DOC_KEYS = [
     "form16",
@@ -1044,6 +1038,19 @@ export default function UploadDocuments({
       }
 
       alert("Application submitted successfully!");
+      
+      // Mark that we've shown the redirect
+      const storageKey = applicationId
+        ? `summaryRedirectShown_${applicationId}`
+        : null;
+      try {
+        if (storageKey && typeof window !== "undefined") {
+          sessionStorage.setItem(storageKey, "1");
+        }
+      } catch (e) {
+        // ignore
+      }
+      
       onSubmissionSuccess?.();
     } catch (error) {
       console.error("Submission error:", error);
@@ -1815,17 +1822,17 @@ export default function UploadDocuments({
             )}
           </button>
 
-          {(isApplicationSubmitted || isApplicationEligible === false) && (
+          {/* {(isApplicationSubmitted || isApplicationEligible === false) && (
             <button
               type="button"
               onClick={() => {
-                router.push("/summary");
+                onSubmissionSuccess?.();
               }}
               className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-3 rounded-xl font-medium transition-all shadow disabled:opacity-50"
             >
               Summary
             </button>
-          )}
+          )} */}
 
           {isApplicationSubmitted && isApplicationEligible === true ? (
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">

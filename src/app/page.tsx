@@ -15,6 +15,7 @@ import VideoKYC, { KYCData } from "@/components/steps/VideoKYC";
 import UploadDocuments, {
   DocumentsFormData,
 } from "@/components/steps/UploadDocuments";
+import Summary from "@/components/steps/Summary";
 import {
   getAuthToken,
   getStoredUser,
@@ -210,10 +211,10 @@ export default function Home() {
 
       if (app.application_status !== "in_progress") {
         setIsApplicationSubmitted(true);
-      }
-
-      // Restore step
-      if (app.current_step) {
+        // If application is submitted or rejected, show step 5 (Summary)
+        setCurrentStep(5);
+      } else if (app.current_step) {
+        // Otherwise restore the current step
         setCurrentStep(app.current_step);
       }
       setApplicationData(app);
@@ -267,7 +268,7 @@ export default function Home() {
   };
 
   const handleNext = async () => {
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       await updateApplicationStep(nextStep);
@@ -435,6 +436,13 @@ export default function Home() {
                   (applicationData as any)?.id ||
                   String(applicationData?.id || "")
                 }
+                applicationData={applicationData}
+              />
+            )}
+
+            {currentStep === 5 && (
+              <Summary
+                onBack={handleBack}
                 applicationData={applicationData}
               />
             )}

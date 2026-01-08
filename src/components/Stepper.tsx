@@ -40,6 +40,12 @@ const steps: Step[] = [
     description: 'Upload & Course Details',
     icon: <FileText className="w-5 h-5 lg:w-6 lg:h-6" />,
   },
+  {
+    id: 5,
+    name: 'Summary',
+    description: 'Review & Confirmation',
+    icon: <Check className="w-5 h-5 lg:w-6 lg:h-6" />,
+  },
 ]
 
 export default function Stepper({ currentStep, onStepClick }: StepperProps) {
