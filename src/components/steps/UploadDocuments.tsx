@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
 import { updateApplicationCategory } from "@/lib/api";
@@ -164,6 +165,10 @@ export default function UploadDocuments({
   onSubmissionSuccess,
   applicationData,
 }: UploadDocumentsProps) {
+  const router = useRouter();
+  const hasShownSummaryRedirect = useRef(false);
+
+  
   console.log(applicationData);
   const [errors, setErrors] = useState<string[]>([]);
   const [isValidating, setIsValidating] = useState(false);
@@ -246,6 +251,50 @@ export default function UploadDocuments({
     boolean | null
   >(null);
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
+
+  // If application becomes rejected or submitted, show popup and redirect to summary
+  useEffect(() => {
+    if (hasShownSummaryRedirect.current) return;
+
+    const storageKey = applicationId
+      ? `summaryRedirectShown_${applicationId}`
+      : null;
+
+    // If sessionStorage already recorded that we've shown for this app, skip.
+    try {
+      if (
+        storageKey &&
+        typeof window !== "undefined" &&
+        sessionStorage.getItem(storageKey) === "1"
+      ) {
+        hasShownSummaryRedirect.current = true;
+        return;
+      }
+    } catch (e) {
+      // ignore sessionStorage access errors
+    }
+
+    const showAndRecord = (message: string) => {
+      hasShownSummaryRedirect.current = true;
+      try {
+        if (storageKey && typeof window !== "undefined") {
+          sessionStorage.setItem(storageKey, "1");
+        }
+      } catch (e) {
+        // ignore
+      }
+      setTimeout(() => {
+        window.alert(message);
+        router.push("/summary");
+      }, 300);
+    };
+
+    if (isApplicationEligible === false) {
+      showAndRecord("Application is Rejected redirecting to Summary Page");
+    } else if (isApplicationSubmitted) {
+      showAndRecord("Application submitted redirecting to Summary Page");
+    }
+  }, [isApplicationEligible, isApplicationSubmitted, router, applicationId]);
 
   const REQUIRED_DOC_KEYS = [
     "form16",
@@ -1765,6 +1814,18 @@ export default function UploadDocuments({
               </>
             )}
           </button>
+
+          {(isApplicationSubmitted || isApplicationEligible === false) && (
+            <button
+              type="button"
+              onClick={() => {
+                router.push("/summary");
+              }}
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-3 rounded-xl font-medium transition-all shadow disabled:opacity-50"
+            >
+              Summary
+            </button>
+          )}
 
           {isApplicationSubmitted && isApplicationEligible === true ? (
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
