@@ -1450,7 +1450,7 @@ export default function UploadDocuments({
           {incomeRejected && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200">
               <p className="text-sm text-red-700 font-medium">
-                ❌ Application rejected: Income exceeds ₹8 Lakhs.
+                ❌ Applicant not eligible: Family income exceeds ₹8 Lakhs.
               </p>
             </div>
           )}
@@ -1493,8 +1493,8 @@ export default function UploadDocuments({
               {/* Applicant Form 16 */}
               {data.applicantEarning === "yes" && (
                 <DocumentUploadCard
-                  title="Applicant Form 16"
-                  description="Applicant income certificate"
+                  title="Applicant Form 16/Income Certificate"
+                  description="ITR certificate"
                   icon={<Receipt className="w-6 h-6" />}
                   required
                   onUpload={handleForm16Upload}
@@ -1540,8 +1540,8 @@ export default function UploadDocuments({
               {/* Father Form 16 */}
               {data.fatherEarning === "yes" && (
                 <DocumentUploadCard
-                  title="Father's Form 16"
-                  description="Father's income certificate"
+                  title="Form 16/Income Certificate"
+                  description="ITR certificate"
                   icon={<Receipt className="w-6 h-6" />}
                   required
                   onUpload={handleFatherForm16Upload}
@@ -1587,8 +1587,8 @@ export default function UploadDocuments({
               {/* Mother Form 16 */}
               {data.motherEarning === "yes" && (
                 <DocumentUploadCard
-                  title="Mother's Form 16"
-                  description="Mother's income certificate"
+                  title="Form 16/Income Certificate"
+                  description="ITR certificate"
                   icon={<Receipt className="w-6 h-6" />}
                   required
                   onUpload={handleMotherForm16Upload}
@@ -1654,10 +1654,6 @@ export default function UploadDocuments({
                     <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm text-red-700 font-medium">
-                        Application rejected: Category "Others" is not eligible
-                        for this scholarship.
-                      </p>
-                      <p className="text-xs text-red-600 mt-1">
                         This scholarship is exclusively for SC/ST category
                         candidates.
                       </p>

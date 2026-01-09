@@ -360,14 +360,21 @@ export default function DocumentUploadCard({
             >
               <Upload className="w-4 h-4" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-700">
-                <span className="text-pink-600 font-medium">Click</span> or drag
-                to upload
-              </p>
-              <p className="text-xs text-gray-500">
-                PDF, JPG, PNG • Max {maxSizeMB}MB
-              </p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-700">
+                  <span className="text-pink-600 font-medium">Click</span> or
+                  drag to upload
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  PDF, JPG, PNG • Max {maxSizeMB}MB
+                </p>
+              </div>
+              <img
+                src="/images/digilocker.png"
+                alt="DigiLocker"
+                className="h-8 w-auto object-contain flex-shrink-0"
+              />
             </div>
           </div>
         </div>

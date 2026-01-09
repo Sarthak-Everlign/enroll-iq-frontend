@@ -296,7 +296,7 @@ export default function AadharPanVerification({
                 <CreditCard className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800">Aadhaar Card</h3>
+                <h3 className="font-semibold text-gray-800">Aadhaar Card </h3>
                 <p className="text-sm text-gray-500">
                   Enter your 12-digit Aadhaar number
                 </p>
@@ -473,8 +473,7 @@ export default function AadharPanVerification({
                   Identity Verified Successfully!
                 </h3>
                 <p className="text-sm text-green-700">
-                  Your Aadhaar and PAN have been verified. The following details
-                  will be auto-filled.
+                  We have successfully verified your Aadhaar and PAN. The authenticated details have been auto-filled to proceed further.
                 </p>
               </div>
             </div>
