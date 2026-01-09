@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { getAuthToken } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import { usePDFDownload } from "./usePDFDownload";
+import { getApplication } from "@/lib/api";
 
 interface SummaryProps {
   onBack: () => void;
   applicationData?: any;
 }
 
-export default function Summary({ onBack, applicationData }: SummaryProps) {
+export default function Summary({ onBack }: SummaryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
@@ -35,6 +36,8 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
     }
   };
 
+  const [applicationData, setApplicationData] = useState<any>(null);
+
   // Load validation reasons from sessionStorage on mount
   useEffect(() => {
     const applicationId =
@@ -53,6 +56,9 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
         const resp = await fetch(`${base}/api/application/summary-data`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+
+        const response_application = await getApplication();
+        setApplicationData(response_application.data);
         if (!resp.ok) {
           const txt = await resp.text();
           throw new Error(`HTTP ${resp.status}: ${txt}`);
@@ -77,7 +83,7 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
     }
 
     load();
-  }, [applicationData]);
+  }, []);
 
   const handleDownloadPDF = () => {
     if (!data) return;
