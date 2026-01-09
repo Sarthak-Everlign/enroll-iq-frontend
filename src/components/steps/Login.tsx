@@ -149,15 +149,34 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       >
         <div className="relative z-10 flex flex-col items-center justify-center px-6">
           {/* Logo */}
-          <div className="mb-12">
-            <Image 
-              src="/images/EnrollIQ.png" 
-              alt="EnrollIQ" 
-              width={280} 
-              height={70}
-              priority
-            />
-          </div>
+{/* Logos */}
+<div className="mb-12 flex flex-col items-center gap-5">
+  {/* Top two logos */}
+  <div className="flex items-center gap-5 mb-20">
+    <Image
+      src="/images/logo1.png"
+      alt="Logo 1"
+      width={140}
+      height={140}
+    />
+    <Image
+      src="/images/logo2.png"
+      alt="Logo 2"
+      width={120}
+      height={120}
+    />
+  </div>
+
+  {/* EnrollIQ */}
+  <Image 
+    src="/images/EnrollIQ.png" 
+    alt="EnrollIQ" 
+    width={280} 
+    height={70}
+    priority
+  />
+</div>
+
 
           {/* Tagline */}
           <div className="text-center mb-8 flex flex-col items-center">
@@ -198,18 +217,36 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     >
       <div className="relative z-10 w-full max-w-md px-4">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <div className="mb-2">
-            <Image 
-              src="/images/EnrollIQ.png" 
-              alt="EnrollIQ" 
-              width={180} 
-              height={45}
-              priority
-            />
-          </div>
-          <p className="text-black/70 text-sm">Smart Scholarship Enrollment Platform</p>
-        </div>
+{/* Logos */}
+<div className="flex flex-col items-center mb-6 gap-2">
+  <div className="flex items-center gap-3">
+    <Image
+      src="/images/logo1.png"
+      alt="Logo 1"
+      width={36}
+      height={36}
+    />
+    <Image
+      src="/images/logo2.png"
+      alt="Logo 2"
+      width={36}
+      height={36}
+    />
+  </div>
+
+  {/* EnrollIQ */}
+  <Image 
+    src="/images/EnrollIQ.png" 
+    alt="EnrollIQ" 
+    width={180} 
+    height={45}
+    priority
+  />
+
+  <p className="text-black/70 text-sm">
+    Smart Scholarship Enrollment Platform
+  </p>
+</div>
 
         {/* Main Card */}
         <div className="glass-dark rounded-3xl p-8 shadow-2xl border border-white/10">

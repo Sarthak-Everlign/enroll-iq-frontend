@@ -254,7 +254,6 @@ export default function PersonalDetails({
       <div className="flex items-center gap-3 mb-6">
         <div className="h-8 w-1.5 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">Personal Details</h2>
-        <Sparkles className="w-5 h-5 text-pink-500" />
       </div>
 
       {saveMessage && (
