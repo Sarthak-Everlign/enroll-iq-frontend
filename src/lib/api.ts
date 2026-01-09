@@ -1374,3 +1374,44 @@ export async function updateIncomeDetails(
 
   return response.json();
 }
+
+/**
+ * Update application status to in_progress
+ * @param applicationId - Application ID
+ * @returns Success response
+ */
+export async function updateApplicationStatusToInProgress(
+  applicationId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/grantor/applications/${applicationId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ application_status: "in_progress" }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || errorData.detail || "Failed to update application status"
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Update application status error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update application status",
+    };
+  }
+}

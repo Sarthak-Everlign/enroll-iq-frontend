@@ -32,6 +32,7 @@ import {
   verifySingleDocument,
   getValidationResultByApplicationId,
   verifyOfferLetter,
+  updateApplicationStatusToInProgress,
   type S3UploadResponse,
   type University,
   type VerifySingleDocumentResponse,
@@ -267,6 +268,9 @@ export default function UploadDocuments({
     boolean | null
   >(null);
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
+  const [previousEligibility, setPreviousEligibility] = useState<
+    boolean | null
+  >(null);
 
   useEffect(() => {
     if (applicationData?.category) {
@@ -448,21 +452,79 @@ export default function UploadDocuments({
       }
     }
 
+    // Store current eligibility before updating
+    const currentEligibility = isApplicationEligible;
+    const wasRejected = currentEligibility === false;
+
     if (!allEligible && ineligible.length > 0) {
+      setPreviousEligibility(currentEligibility);
       setIsApplicationEligible(false);
       setIneligibleDocuments(ineligible);
       return;
     }
 
     if (!allPresent) {
+      setPreviousEligibility(currentEligibility);
       setIsApplicationEligible(null);
       setIneligibleDocuments([]);
       return;
     }
 
+    // Check if eligibility changed from false to true (validation recovered)
+    const nowEligible = allEligible && allPresent;
+
+    setPreviousEligibility(currentEligibility);
     setIsApplicationEligible(true);
     setIneligibleDocuments([]);
-  }, [verificationStatus]);
+
+    // If validation recovered (was rejected, now eligible), update status to in_progress
+    if (
+      wasRejected &&
+      nowEligible &&
+      applicationId &&
+      !incomeRejected &&
+      !categoryRejected
+    ) {
+      // Clear sessionStorage rejection reasons
+      try {
+        const reasonsKey = `validationReasons_${applicationId}`;
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(reasonsKey);
+        }
+        // Clear redirect flag so user can navigate normally
+        const redirectKey = `summaryRedirectShown_${applicationId}`;
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem(redirectKey);
+          hasShownSummaryRedirect.current = false;
+        }
+      } catch (e) {
+        console.error("Failed to clear sessionStorage:", e);
+      }
+
+      // Update application status to in_progress
+      updateApplicationStatusToInProgress(applicationId)
+        .then((result) => {
+          if (result.success) {
+            console.log("✅ Application status updated to in_progress");
+            // Optionally reload application data or notify parent component
+          } else {
+            console.error(
+              "Failed to update application status:",
+              result.message
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating application status:", error);
+        });
+    }
+  }, [
+    verificationStatus,
+    applicationId,
+    incomeRejected,
+    categoryRejected,
+    isApplicationEligible,
+  ]);
 
   useEffect(() => {
     async function loadUniversities() {
@@ -548,40 +610,6 @@ export default function UploadDocuments({
           });
 
           setVerificationStatus(newVerificationStatus);
-
-          // // Check eligibility - all required documents must be present and eligible
-          // const requiredDocuments = [
-          //   "form16",
-          //   "caste_certificate",
-          //   "marksheet_10th",
-          //   "marksheet_12th",
-          //   "marksheet_graduation",
-          // ];
-
-          // const allDocumentsPresent = requiredDocuments.every(
-          //   (doc) => results[doc as keyof typeof results]
-          // );
-
-          // // if (allDocumentsPresent) {
-          // const ineligibleDocs: string[] = [];
-          // let allEligible: boolean = true;
-
-          // requiredDocuments.forEach((doc) => {
-          //   const result = results[doc as keyof typeof results];
-          //   if (result && !result.is_eligible) {
-          //     allEligible = false;
-          //     ineligibleDocs.push(apiTypeToDisplayName[doc] || doc);
-          //   }
-          // });
-
-          // if (allDocumentsPresent || !allEligible) {
-          //   setIsApplicationEligible(allEligible);
-          //   setIneligibleDocuments(ineligibleDocs);
-          // } else {
-          //   // Not all documents verified yet
-          //   setIsApplicationEligible(null);
-          //   setIneligibleDocuments([]);
-          // }
         }
       } catch (error) {
         console.error("Failed to load validation results:", error);
@@ -1342,43 +1370,7 @@ export default function UploadDocuments({
           <div className="h-8 w-1.5 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
           <h2 className="text-2xl font-bold text-gray-800">Upload Documents</h2>
         </div>
-
-        {/* Progress Indicator */}
-        {/* <div className="hidden sm:flex items-center gap-3 bg-gray-100 rounded-full px-4 py-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
-            {uploadedCount}
-          </div>
-          <span className="text-sm text-gray-600">of 9 uploaded</span>
-        </div> */}
       </div>
-
-      {/* Info Banner */}
-      {/* <div className="mb-8 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Shield className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-blue-900">
-              Eligibility Criteria
-            </h4>
-            <p className="text-sm text-blue-700 mt-1">
-              All documents are automatically verified using AI.
-              <br />• Form 16: Income must be ≤ ₹8,00,000
-              <br />• Caste Certificate: Must belong to SC/ST category
-              <br />• Marksheets: Percentage/CGPA will be ≥ 75%
-            </p>
-            <a
-              href="https://socialjustice-fs.trti-maha.in:83/faqs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 underline mt-2 inline-block"
-            >
-              For more details, click here
-            </a>
-          </div>
-        </div>
-      </div> */}
 
       {/* Required Documents Error */}
       {errors.length > 0 && !errors.includes("validation_error") && (
@@ -2099,37 +2091,6 @@ export default function UploadDocuments({
         </button>
 
         <div className="flex items-center gap-3">
-          {/* <button
-            type="button"
-            onClick={handleDownloadPDF}
-            disabled={isDownloadingPDF || isApplicationSubmitted}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-5 py-3 rounded-xl font-medium transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDownloadingPDF ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                Download PDF
-              </>
-            )}
-          </button> */}
-
-          {/* {(isApplicationSubmitted || isApplicationEligible === false) && (
-            <button
-              type="button"
-              onClick={() => {
-                onSubmissionSuccess?.();
-              }}
-              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-5 py-3 rounded-xl font-medium transition-all shadow disabled:opacity-50"
-            >
-              Summary
-            </button>
-          )} */}
-
           {isApplicationSubmitted && isApplicationEligible === true ? (
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
               <CheckCircle2 className="w-4 h-4" />
