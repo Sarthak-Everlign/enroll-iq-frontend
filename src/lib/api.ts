@@ -1329,7 +1329,7 @@ export async function verifyOfferLetter(
 export async function updateApplicationCategory(
   applicationId: string,
   category: string
-): Promise<{ success: boolean; message: string; category?: string }> {
+): Promise<{ success: boolean; message: string; category?: string; rejected?: boolean }> {
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/grantor/applications/${applicationId}/category`,

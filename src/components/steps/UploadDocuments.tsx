@@ -187,6 +187,7 @@ export default function UploadDocuments({
     saved: false,
     error: null,
   });
+  const [categoryRejected, setCategoryRejected] = useState<boolean>(false);
 
   // Track verification status for each document
   const [verificationStatus, setVerificationStatus] = useState<
@@ -268,6 +269,21 @@ export default function UploadDocuments({
   const [ineligibleDocuments, setIneligibleDocuments] = useState<string[]>([]);
 
   useEffect(() => {
+    if (applicationData?.category) {
+      // Restore category selection
+      onDataChange({
+        ...data,
+        category: applicationData.category,
+      });
+
+      // Restore rejection state if "Others" was selected
+      if (applicationData.category === "Others") {
+        setCategoryRejected(true);
+      }
+    }
+  }, [applicationData]);
+
+  useEffect(() => {
     if (applicationData?.income_details) {
       // Parse income_details if it's a string
       let incomeDetails = applicationData.income_details;
@@ -283,10 +299,16 @@ export default function UploadDocuments({
       onDataChange({
         ...data,
         ...incomeDetails,
+        category: applicationData.category || data.category,
       });
 
       // also restore rejection UI state
       setIncomeRejected(incomeDetails.incomeLessThan8L === "no");
+    }
+
+    // Restore category and its rejection state
+    if (applicationData?.category) {
+      setCategoryRejected(applicationData.category === "Others");
     }
   }, [applicationData]);
 
@@ -854,6 +876,10 @@ export default function UploadDocuments({
       category: newCategory,
     });
 
+    // Check if "Others" is selected
+    const isOthersCategory = newCategory === "Others";
+    setCategoryRejected(isOthersCategory);
+
     if (!applicationId || !newCategory) return;
 
     setCategorySaveStatus({ saving: true, saved: false, error: null });
@@ -867,6 +893,12 @@ export default function UploadDocuments({
       if (result.success) {
         setCategorySaveStatus({ saving: false, saved: true, error: null });
         console.log("✅ Category saved to database:", newCategory);
+
+        if (result.rejected) {
+          console.log(
+            "⚠️ Application automatically rejected due to 'Others' category"
+          );
+        }
 
         // Clear success message after 3 seconds
         setTimeout(() => {
@@ -1557,11 +1589,30 @@ export default function UploadDocuments({
                 options={[
                   { value: "SC", label: "SC (Scheduled Caste)" },
                   { value: "ST", label: "ST (Scheduled Tribe)" },
+                  { value: "Others", label: "Others" },
                 ]}
                 value={data.category}
                 onChange={handleCategoryChange}
                 placeholder="Select category"
               />
+
+              {categoryRejected && (
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200 mt-3 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-red-700 font-medium">
+                        Application rejected: Category "Others" is not eligible
+                        for this scholarship.
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        This scholarship is exclusively for SC/ST category
+                        candidates.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Save Status Indicator */}
               {categorySaveStatus.saving && (
@@ -2024,7 +2075,9 @@ export default function UploadDocuments({
               <CheckCircle2 className="w-4 h-4" />
               Already Submitted
             </div>
-          ) : incomeRejected || isApplicationEligible === false ? (
+          ) : incomeRejected ||
+            categoryRejected ||
+            isApplicationEligible === false ? (
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md">
                 <AlertTriangle className="w-4 h-4" />
@@ -2033,6 +2086,10 @@ export default function UploadDocuments({
               {incomeRejected ? (
                 <p className="text-xs text-red-600 text-right">
                   Reason: Income exceeds ₹8 Lakhs
+                </p>
+              ) : categoryRejected ? (
+                <p className="text-xs text-red-600 text-right">
+                  Reason: Category "Others" is not eligible
                 </p>
               ) : ineligibleDocuments.length > 0 ? (
                 <p className="text-xs text-red-600 text-right">
@@ -2044,7 +2101,10 @@ export default function UploadDocuments({
             <button
               type="submit"
               disabled={
-                isValidating || isApplicationEligible === null || incomeRejected
+                isValidating ||
+                isApplicationEligible === null ||
+                incomeRejected ||
+                categoryRejected
               }
               className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 shadow-lg text-white hover:shadow-xl hover:scale-105 btn-shine disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               style={{
