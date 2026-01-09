@@ -22,16 +22,42 @@ export default function Header({ userName, onLogout }: HeaderProps) {
     <header className="sticky top-0 z-50 glass-dark shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Image 
-              src="/images/EnrollIQ1.png" 
-              alt="EnrollIQ" 
-              width={140} 
-              height={35}
-              priority
-            />
-          </div>
+          {/* Logo with Scholarship Name */}
+          <div className="flex items-center gap-3">
+  <img 
+    src="/images/EnrollIQ1.png" 
+    alt="EnrollIQ" 
+    width={140} 
+    height={35}
+    className="h-8 w-auto"
+  />
+
+  <div className="hidden md:block h-10 w-px bg-white/20"></div>
+
+  <div className="hidden md:flex items-center gap-3">
+    <div>
+      <div className="text-white text-sm font-semibold leading-tight">
+        Rajarshi Shahu Maharaj
+      </div>
+      <div className="text-white/70 text-xs leading-tight">
+        Foreign Scholarship Scheme
+      </div>
+    </div>
+
+    {/* AY badge */}
+    <div
+      className="px-3 py-1 rounded-lg text-white text-xs font-semibold whitespace-nowrap"
+      style={{
+        backgroundImage:
+          "linear-gradient(135deg, rgba(54,68,207,0.9) 0%, rgba(133,243,255,0.9) 100%)",
+        boxShadow: "0 4px 12px rgba(54, 68, 207, 0.35)",
+      }}
+    >
+      AY 2025–2026
+    </div>
+  </div>
+</div>
+
           
           {/* Right Side */}
           <div className="flex items-center gap-4">
@@ -108,6 +134,15 @@ export default function Header({ userName, onLogout }: HeaderProps) {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="lg:hidden py-4 border-t border-gray-700 animate-fade-in">
+            {/* Mobile Scholarship Name */}
+            <div className="mb-4 pb-4 border-b border-gray-700">
+              <div className="text-white text-sm font-semibold">
+                Rajarshi Shahu Maharaj
+              </div>
+              <div className="text-white/70 text-xs">
+                Foreign Scholarship Scheme
+              </div>
+            </div>
             <hr className="my-3 border-gray-700" />
             <button 
               onClick={handleLogout}
