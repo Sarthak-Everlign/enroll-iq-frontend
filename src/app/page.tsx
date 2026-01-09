@@ -430,7 +430,12 @@ export default function Home() {
                 onDataChange={handleDocumentsDataChange}
                 personalData={personalData}
                 isApplicationSubmitted={isApplicationSubmitted}
-                onSubmissionSuccess={() => setIsApplicationSubmitted(true)}
+                onSubmissionSuccess={async () => {
+                  setIsApplicationSubmitted(true);
+                  setCurrentStep(5);
+                  await updateApplicationStep(5);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 applicationId={
                   (applicationData as any)?.application_id ||
                   (applicationData as any)?.id ||
@@ -441,10 +446,7 @@ export default function Home() {
             )}
 
             {currentStep === 5 && (
-              <Summary
-                onBack={handleBack}
-                applicationData={applicationData}
-              />
+              <Summary onBack={handleBack} applicationData={applicationData} />
             )}
           </div>
         </div>

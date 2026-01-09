@@ -335,6 +335,7 @@ export default function UploadDocuments({
     "marksheet10th",
     "marksheet12th",
     "graduation",
+    "offerLetter",
   ] as const;
 
   useEffect(() => {
@@ -344,12 +345,9 @@ export default function UploadDocuments({
     let allEligible = true;
     const ineligible: string[] = [];
 
-    for (const key of REQUIRED_DOC_KEYS) {
-      const status = verificationStatus[key];
-
+    for (const [key, status] of Object.entries(verificationStatus)) {
       if (!status) {
-        allPresent = false;
-        continue; // 🔑 missing ≠ failed
+        continue;
       }
 
       if (status.verified === false) {
@@ -362,26 +360,30 @@ export default function UploadDocuments({
       }
     }
 
-    // 1️⃣ Rejection dominates
+    for (const key of REQUIRED_DOC_KEYS) {
+      const status = verificationStatus[key];
+      if (!status) {
+        allPresent = false;
+        break;
+      }
+    }
+
     if (!allEligible && ineligible.length > 0) {
       setIsApplicationEligible(false);
       setIneligibleDocuments(ineligible);
       return;
     }
 
-    // 2️⃣ Pending (missing docs, no failures)
     if (!allPresent) {
       setIsApplicationEligible(null);
       setIneligibleDocuments([]);
       return;
     }
 
-    // 3️⃣ Fully eligible
     setIsApplicationEligible(true);
     setIneligibleDocuments([]);
   }, [verificationStatus]);
 
-  // Fetch universities on mount
   useEffect(() => {
     async function loadUniversities() {
       setLoadingUniversities(true);
