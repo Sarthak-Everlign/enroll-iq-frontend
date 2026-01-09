@@ -2041,7 +2041,7 @@ export default function UploadDocuments({
         </button>
 
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             type="button"
             onClick={handleDownloadPDF}
             disabled={isDownloadingPDF || isApplicationSubmitted}
@@ -2058,7 +2058,7 @@ export default function UploadDocuments({
                 Download PDF
               </>
             )}
-          </button>
+          </button> */}
 
           {/* {(isApplicationSubmitted || isApplicationEligible === false) && (
             <button
