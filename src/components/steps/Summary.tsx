@@ -13,6 +13,33 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
+  const [validationReasons, setValidationReasons] = useState<string[]>([]);
+  const loadValidationReasons = (appId: string | null | undefined) => {
+    if (!appId || typeof window === "undefined") return;
+
+    try {
+      const reasonsKey = `validationReasons_${appId}`;
+      const storedReasons = sessionStorage.getItem(reasonsKey);
+      if (storedReasons) {
+        const parsed = JSON.parse(storedReasons);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setValidationReasons(parsed);
+        }
+      }
+    } catch (e) {
+      console.error(
+        "Failed to load validation reasons from sessionStorage:",
+        e
+      );
+    }
+  };
+
+  // Load validation reasons from sessionStorage on mount
+  useEffect(() => {
+    const applicationId =
+      applicationData?.application_id || applicationData?.id;
+    loadValidationReasons(applicationId);
+  }, [applicationData]);
 
   useEffect(() => {
     async function load() {
@@ -30,6 +57,16 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
         }
         const json = await resp.json();
         setData(json.data || null);
+
+        // Try to load validation reasons from sessionStorage after data loads
+        // (in case applicationId comes from API response)
+        const applicationId =
+          json.data?.Application_id ||
+          json.data?.application_id ||
+          applicationData?.application_id ||
+          applicationData?.id;
+
+        loadValidationReasons(applicationId);
       } catch (err: any) {
         setError(err?.message || "Failed to fetch summary data");
       } finally {
@@ -38,7 +75,7 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
     }
 
     load();
-  }, []);
+  }, [applicationData]);
 
   if (loading) {
     return (
@@ -105,7 +142,10 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fields.map(([label, value]) =>
           value != null ? (
-            <div key={label} className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition">
+            <div
+              key={label}
+              className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition"
+            >
               <div className="text-sm text-gray-500 font-medium">{label}</div>
               <div className="mt-2 font-semibold text-gray-800">
                 {Array.isArray(value) ? value.join(", ") : value}
@@ -114,22 +154,34 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
           ) : null
         )}
 
-        {data.Rejection_reason &&
+        {((data.Rejection_reason &&
           Array.isArray(data.Rejection_reason) &&
-          data.Rejection_reason.length > 0 && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg md:col-span-2">
-              <div className="text-sm text-red-700 font-medium">
-                Rejection Reasons
-              </div>
-              <ul className="mt-2 list-disc list-inside text-red-600 space-y-1">
-                {data.Rejection_reason.map((r: string, i: number) => (
-                  <li key={i} className="text-sm">
+          data.Rejection_reason.length > 0) ||
+          validationReasons.length > 0) && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg md:col-span-2">
+            <div className="text-sm text-red-700 font-medium mb-2">
+              Rejection Reasons
+            </div>
+            <ul className="list-disc list-inside text-red-600 space-y-1">
+              {/* Display API rejection reasons first */}
+              {data.Rejection_reason &&
+                Array.isArray(data.Rejection_reason) &&
+                data.Rejection_reason.length > 0 &&
+                data.Rejection_reason.map((r: string, i: number) => (
+                  <li key={`api-${i}`} className="text-sm">
                     {r}
                   </li>
                 ))}
-              </ul>
-            </div>
-          )}
+              {/* Display validation reasons from sessionStorage */}
+              {validationReasons.length > 0 &&
+                validationReasons.map((reason, i) => (
+                  <li key={`validation-${i}`} className="text-sm">
+                    {reason}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="mt-8 flex gap-3">

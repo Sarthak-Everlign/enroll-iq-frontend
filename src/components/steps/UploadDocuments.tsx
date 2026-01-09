@@ -348,9 +348,67 @@ export default function UploadDocuments({
 
     // Only trigger for rejection detection - submission is handled in handleSubmit
     if (isApplicationEligible === false) {
+      // Collect validation failure reasons
+      const rejectionReasons: string[] = [];
+
+      // Document type to display name mapping
+      const documentDisplayNames: Record<string, string> = {
+        form16: "Form 16 (Applicant)",
+        form16_father: "Form 16 (Father)",
+        form16_mother: "Form 16 (Mother)",
+        caste: "Caste Certificate",
+        marksheet10th: "10th Marksheet",
+        marksheet12th: "12th Marksheet",
+        graduation: "Graduation Marksheet",
+        offerLetter: "Offer Letter",
+      };
+
+      // Collect reasons from verification status
+      Object.entries(verificationStatus).forEach(([key, status]) => {
+        if (status?.verified === false) {
+          const docName = documentDisplayNames[key] || key;
+          const reason =
+            status.result?.message || status.error || "Validation failed";
+          rejectionReasons.push(`${docName}: ${reason}`);
+        }
+      });
+
+      // Add income rejection reason if applicable
+      if (incomeRejected) {
+        rejectionReasons.push("Income Details: Income exceeds ₹8 Lakhs");
+      }
+
+      // Add category rejection reason if applicable
+      if (categoryRejected) {
+        rejectionReasons.push(
+          "Category: 'Others' category is not eligible for this scholarship"
+        );
+      }
+
+      // Store rejection reasons in sessionStorage
+      if (
+        applicationId &&
+        typeof window !== "undefined" &&
+        rejectionReasons.length > 0
+      ) {
+        try {
+          const reasonsKey = `validationReasons_${applicationId}`;
+          sessionStorage.setItem(reasonsKey, JSON.stringify(rejectionReasons));
+        } catch (e) {
+          console.error("Failed to store validation reasons:", e);
+        }
+      }
+
       recordAndNavigate();
     }
-  }, [isApplicationEligible, applicationId, onSubmissionSuccess]);
+  }, [
+    isApplicationEligible,
+    applicationId,
+    onSubmissionSuccess,
+    verificationStatus,
+    incomeRejected,
+    categoryRejected,
+  ]);
 
   const REQUIRED_DOC_KEYS = [
     "caste",
@@ -2076,28 +2134,6 @@ export default function UploadDocuments({
             <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
               <CheckCircle2 className="w-4 h-4" />
               Already Submitted
-            </div>
-          ) : incomeRejected ||
-            categoryRejected ||
-            isApplicationEligible === false ? (
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md">
-                <AlertTriangle className="w-4 h-4" />
-                Application Rejected
-              </div>
-              {incomeRejected ? (
-                <p className="text-xs text-red-600 text-right">
-                  Reason: Income exceeds ₹8 Lakhs
-                </p>
-              ) : categoryRejected ? (
-                <p className="text-xs text-red-600 text-right">
-                  Reason: Category "Others" is not eligible
-                </p>
-              ) : ineligibleDocuments.length > 0 ? (
-                <p className="text-xs text-red-600 text-right">
-                  Ineligible: {ineligibleDocuments.join(", ")}
-                </p>
-              ) : null}
             </div>
           ) : (
             <button
