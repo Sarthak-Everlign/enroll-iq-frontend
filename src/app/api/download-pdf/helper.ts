@@ -126,9 +126,10 @@ export async function drawApplicationTables(pdf: PDFDocument, data: any) {
     { label: "Gender", value: data.gender },
     {
       label: "Date of Birth",
-      value: data.dob_day && data.dob_month && data.dob_year 
-        ? `${data.dob_day}-${data.dob_month}-${data.dob_year}`
-        : "N/A",
+      value:
+        data.dob_day && data.dob_month && data.dob_year
+          ? `${data.dob_day}-${data.dob_month}-${data.dob_year}`
+          : "N/A",
     },
     { label: "Category", value: data.category || data.Category },
     { label: "Father Name", value: data.father_name },
@@ -151,11 +152,24 @@ export async function drawApplicationTables(pdf: PDFDocument, data: any) {
 
   drawSection("Application Status");
   drawTable([
-    { label: "Application ID", value: data.application_id || data.Application_id },
-    { label: "Status", value: data.application_status || data.Status || data.status || data.Grant_status },
+    {
+      label: "Application ID",
+      value: data.application_id || data.Application_id,
+    },
+    {
+      label: "Status",
+      value:
+        data.application_status ||
+        data.Status ||
+        data.status ||
+        data.Grant_status,
+    },
     { label: "Submitted At", value: data.submitted_at },
     { label: "Academic Year", value: data.academic_year },
-    { label: "Scheme Name", value: data.Scheme_name || data.Scheme || data.scheme_name },
+    {
+      label: "Scheme Name",
+      value: data.Scheme_name || data.Scheme || data.scheme_name,
+    },
     { label: "Course Applied", value: data.Course_applied },
     { label: "University", value: data.University },
   ]);
@@ -188,39 +202,41 @@ export async function drawApplicationTables(pdf: PDFDocument, data: any) {
       },
       {
         label: "Graduation",
-        value: vr.marksheet_graduation?.is_eligible ? "Eligible" : "Not Eligible",
+        value: vr.marksheet_graduation?.is_eligible
+          ? "Eligible"
+          : "Not Eligible",
       },
     ]);
   }
 
   /* ---------------- Score Breakdown (if available) ---------------- */
 
-  const score = data.recommendation_details?.scoreBreakdown || {};
+  // const score = data.recommendation_details?.scoreBreakdown || {};
 
-  if (Object.keys(score).length > 0) {
-    drawSection("Score Breakdown");
-    drawTable([
-      { label: "University Score", value: score.universityScore },
-      { label: "Academic Score", value: score.academicScore },
-      { label: "Course Score", value: score.courseScore },
-      { label: "Income Score", value: score.incomeScore },
-      { label: "Beneficiary Score", value: score.beneficiaryScore },
-      { label: "Age Score", value: score.ageScore },
-      { label: "Total Score", value: score.totalScore },
-    ]);
-  }
+  // if (Object.keys(score).length > 0) {
+  //   drawSection("Score Breakdown");
+  //   drawTable([
+  //     { label: "University Score", value: score.universityScore },
+  //     { label: "Academic Score", value: score.academicScore },
+  //     { label: "Course Score", value: score.courseScore },
+  //     { label: "Income Score", value: score.incomeScore },
+  //     { label: "Beneficiary Score", value: score.beneficiaryScore },
+  //     { label: "Age Score", value: score.ageScore },
+  //     { label: "Total Score", value: score.totalScore },
+  //   ]);
+  // }
 
   /* ---------------- Recommendation (if available) ---------------- */
 
-  const rec = data.recommendation_details || {};
+  // const rec = data.recommendation_details || {};
 
-  if (Object.keys(rec).length > 0) {
-    drawSection("Recommendation Details");
-    drawTable([
-      { label: "Course Level", value: rec.courseLevelPriority },
-      { label: "University Ranking", value: rec.universityRanking },
-      { label: "Days Until Course Start", value: rec.daysUntilCourseStart },
-      { label: "Zone", value: rec.zone },
-    ]);
-  }
+  // if (Object.keys(rec).length > 0) {
+  //   drawSection("Recommendation Details");
+  //   drawTable([
+  //     { label: "Course Level", value: rec.courseLevelPriority },
+  //     { label: "University Ranking", value: rec.universityRanking },
+  //     { label: "Days Until Course Start", value: rec.daysUntilCourseStart },
+  //     { label: "Zone", value: rec.zone },
+  //   ]);
+  // }
 }

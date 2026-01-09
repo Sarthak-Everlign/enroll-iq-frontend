@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const s3Client = getS3Client();
-    const bucket = process.env.AWS_S3_BUCKET;
+    const bucket = process.env.S3_BUCKET_NAME;
 
     if (!s3Client || !bucket) {
       return NextResponse.json(

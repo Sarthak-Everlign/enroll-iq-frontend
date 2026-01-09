@@ -191,10 +191,7 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
 
   const handleDownloadPDF = () => {
     if (!data) return;
-    downloadPDF(
-      data.Application_id || data.application_id,
-      data
-    );
+    downloadPDF(applicationData.id, applicationData);
   };
 
   if (loading) {
@@ -262,7 +259,10 @@ export default function Summary({ onBack, applicationData }: SummaryProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fields.map(([label, value]) =>
           value != null ? (
-            <div key={label} className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition">
+            <div
+              key={label}
+              className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition"
+            >
               <div className="text-sm text-gray-500 font-medium">{label}</div>
               <div className="mt-2 font-semibold text-gray-800">
                 {Array.isArray(value) ? value.join(", ") : value}
