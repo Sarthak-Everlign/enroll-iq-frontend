@@ -1145,28 +1145,115 @@ export async function checkS3DocumentsStatus(
 
 // ============== Document Verification Types ==============
 
+// Document type union matching the API
+export type DocumentType =
+  | "form16"
+  | "form16_father"
+  | "form16_mother"
+  | "caste_certificate"
+  | "marksheet_10th"
+  | "marksheet_12th"
+  | "marksheet_graduation"
+  | "offer_letter";
+
 export interface VerifySingleDocumentRequest {
   application_id: string;
-  document_type: "form16" | "caste_certificate" | "marksheet_10th" | "marksheet_12th" | "marksheet_graduation";
+  document_type: DocumentType;
 }
 
+// Base response structure
 export interface VerifySingleDocumentResponse {
   success: boolean;
   application_id: string;
   document_type: string;
-  verified: boolean;
-  result?: Record<string, any>;
+  verified: boolean; // true if document is verified AND eligible
+  result: VerificationResult | null;
 }
+
+// Verification result structure
+export interface VerificationResult {
+  success: boolean;
+  message: string;
+  data: DocumentData;
+  is_eligible: boolean;
+}
+
+// Document-specific data types
+export interface CasteCertificateData {
+  provided_name: string;
+  selected_category: string;
+  extracted_name: string;
+  extracted_caste: string;
+  extracted_category: string;
+  name_matches: boolean;
+  category_matches: boolean;
+  name_match_reason: string;
+  category_match_reason: string;
+  belongs_to_sc_st: boolean;
+  confidence: number;
+  explanation: string;
+}
+
+export interface OfferLetterData {
+  provided_university: string | null;
+  extracted_college_name: string | null;
+  extracted_course_name: string | null;
+  extracted_fees_amount: number | null;
+  extracted_fees_currency: string;
+  extracted_fees_type: string | null;
+  extracted_fees_description: string | null;
+  university_matches: boolean;
+  university_match_reason: string;
+  confidence: number;
+  extracted_from: string | null;
+  university_verification: {
+    university_matches: boolean;
+    match_reason: string;
+    confidence: number;
+    similarity_score: number;
+    provided_university: string;
+    extracted_university: string;
+  } | null;
+  is_eligible: boolean;
+  eligibility_reasons: string[];
+  explanation: string;
+}
+
+export interface Form16Data {
+  gross_income: number;
+  net_income: number;
+  is_eligible: boolean;
+  income_limit: number;
+  confidence: number;
+}
+
+export interface MarksheetData {
+  percentage: number;
+  cgpa: number;
+  is_eligible: boolean;
+  percentage_threshold: number;
+  confidence: number;
+}
+
+// Union type for all document data
+export type DocumentData =
+  | CasteCertificateData
+  | OfferLetterData
+  | Form16Data
+  | MarksheetData;
 
 /**
  * Verify a single document after it has been uploaded to S3
+ * Supports all document types: form16, form16_father, form16_mother, caste_certificate,
+ * marksheet_10th, marksheet_12th, marksheet_graduation, offer_letter
+ * 
  * @param applicationId - Application ID
  * @param documentType - Type of document to verify
- * @returns Verification result
+ * @returns Verification result with consistent structure for all document types
  */
 export async function verifySingleDocument(
   applicationId: string,
-  documentType: "form16" | "caste_certificate" | "marksheet_10th" | "marksheet_12th" | "marksheet_graduation"
+  documentType: DocumentType
 ): Promise<VerifySingleDocumentResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/grantor/applications/verify-single-document`, {
@@ -1187,7 +1274,14 @@ export async function verifySingleDocument(
       throw new Error(result.detail || result.message || "Verification failed");
     }
 
-    return result;
+    // Ensure result structure matches expected format
+    return {
+      success: result.success ?? true,
+      application_id: result.application_id ?? applicationId,
+      document_type: result.document_type ?? documentType,
+      verified: result.verified ?? false,
+      result: result.result ?? null,
+    };
   } catch (error) {
     console.error("Document verification error:", error);
     return {
@@ -1195,9 +1289,7 @@ export async function verifySingleDocument(
       application_id: applicationId,
       document_type: documentType,
       verified: false,
-      result: {
-        error: error instanceof Error ? error.message : "Verification failed",
-      },
+      result: null,
     };
   }
 }

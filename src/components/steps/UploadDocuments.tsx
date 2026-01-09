@@ -31,7 +31,6 @@ import {
   submitApplication,
   verifySingleDocument,
   getValidationResultByApplicationId,
-  verifyOfferLetter,
   updateApplicationStatusToInProgress,
   type S3UploadResponse,
   type University,
@@ -726,6 +725,7 @@ export default function UploadDocuments({
         | "marksheet_10th"
         | "marksheet_12th"
         | "marksheet_graduation"
+        | "offer_letter"
       > = {
         form16: "form16",
         form16_father: "form16_father",
@@ -734,6 +734,7 @@ export default function UploadDocuments({
         marksheet10th: "marksheet_10th",
         marksheet12th: "marksheet_12th",
         graduation: "marksheet_graduation",
+        offerLetter: "offer_letter",
       };
 
       // Update local state with file
@@ -774,10 +775,13 @@ export default function UploadDocuments({
               applicationId,
               verificationType as
                 | "form16"
+                | "form16_father"
+                | "form16_mother"
                 | "caste_certificate"
                 | "marksheet_10th"
                 | "marksheet_12th"
                 | "marksheet_graduation"
+                | "offer_letter"
             );
 
             setVerificationStatus((prev) => {
@@ -821,121 +825,8 @@ export default function UploadDocuments({
   const handleMarksheet12thUpload = createUploadHandler("marksheet12th");
   const handleGraduationUpload = createUploadHandler("graduation");
 
-  // Special handler for offer letter that uses the dedicated verification endpoint
-  const handleOfferLetterUpload = async (
-    file: File
-  ): Promise<S3UploadResponse> => {
-    // Update local state with file
-    onDataChange({
-      ...data,
-      offerLetter: file,
-    });
-
-    // Set verifying state
-    setVerificationStatus((prev) => ({
-      ...prev,
-      offerLetter: {
-        isVerifying: true,
-        verified: null,
-      },
-    }));
-
-    try {
-      // Call the offer letter verification endpoint which handles S3 upload + verification
-      const verificationResult = await verifyOfferLetter(
-        file,
-        data.universityName || selectedUniversity?.name
-      );
-
-      if (verificationResult.success && verificationResult.data) {
-        // Update with S3 info from verification response
-        // Note: S3 URL construction may need adjustment based on your S3 setup
-        const s3Url = verificationResult.data.s3_key
-          ? verificationResult.data.s3_url || null
-          : null;
-
-        onDataChange({
-          ...data,
-          offerLetter: file,
-          offerLetterS3Key: verificationResult.data.s3_key || null,
-          offerLetterS3Url: s3Url,
-        });
-
-        // Determine verification status:
-        // Backend returns is_eligible, but if verification is successful (success=true and positive message),
-        // treat as eligible even if is_eligible is null/undefined
-        const isEligible =
-          verificationResult.is_eligible !== undefined &&
-          verificationResult.is_eligible !== null
-            ? verificationResult.is_eligible
-            : verificationResult.success &&
-              (verificationResult.message?.toLowerCase().includes("success") ||
-                verificationResult.message
-                  ?.toLowerCase()
-                  .includes("processed successfully"))
-            ? true
-            : null;
-
-        // Extract university verification details if available
-        const universityVerification =
-          verificationResult.data?.university_verification;
-        const matchReason =
-          universityVerification?.match_reason ||
-          (universityVerification?.matched ? "Universities match" : null);
-
-        // Update verification status
-        setVerificationStatus((prev) => ({
-          ...prev,
-          offerLetter: {
-            isVerifying: false,
-            verified: isEligible,
-            result: {
-              message: verificationResult.message,
-              data: verificationResult.data,
-              universityMatch: matchReason,
-            },
-          },
-        }));
-
-        // Return success response
-        return {
-          success: true,
-          message:
-            verificationResult.message ||
-            "Offer letter uploaded and verified successfully",
-          data: {
-            s3Key: verificationResult.data.s3_key || "",
-            s3Url: s3Url || "",
-            fileName: file.name,
-            fileSize: file.size,
-            contentType: file.type,
-          },
-        };
-      } else {
-        throw new Error(
-          verificationResult.message || "Offer letter verification failed"
-        );
-      }
-    } catch (error) {
-      console.error("Offer letter verification error:", error);
-      setVerificationStatus((prev) => ({
-        ...prev,
-        offerLetter: {
-          isVerifying: false,
-          verified: false,
-          error: error instanceof Error ? error.message : "Verification failed",
-        },
-      }));
-
-      return {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to upload and verify offer letter",
-      };
-    }
-  };
+  // Offer letter handler - uses unified verifySingleDocument endpoint
+  const handleOfferLetterUpload = createUploadHandler("offerLetter");
 
   const handleBankPassbookUpload = createUploadHandler("bankPassbook");
   const handleStatementOfPurposeUpload =
