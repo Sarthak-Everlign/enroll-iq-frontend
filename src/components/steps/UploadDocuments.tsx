@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
 import { updateApplicationCategory, updateIncomeDetails } from "@/lib/api";
+import { BrandLoader } from "@/loader/src/components/BrandLoader";
 import FormSelect from "@/components/FormSelect";
 import {
   ArrowLeft,
@@ -174,6 +175,8 @@ export default function UploadDocuments({
   const [loadingUniversities, setLoadingUniversities] = useState(true);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [incomeRejected, setIncomeRejected] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [universityErrors, setUniversityErrors] = useState<
     Record<string, string>
   >({});
@@ -350,7 +353,7 @@ export default function UploadDocuments({
     };
 
     // Only trigger for rejection detection - submission is handled in handleSubmit
-    if (isApplicationEligible === false) {
+    if (isApplicationEligible === false && !isSubmitting) {
       // Collect validation failure reasons
       const rejectionReasons: string[] = [];
 
@@ -1152,7 +1155,7 @@ export default function UploadDocuments({
     e.preventDefault();
 
     if (isApplicationSubmitted) {
-      alert(
+      setSubmitError(
         "This application has already been submitted and cannot be resubmitted."
       );
       return;
@@ -1177,18 +1180,19 @@ export default function UploadDocuments({
 
     if (Object.keys(newUniversityErrors).length > 0) {
       setUniversityErrors(newUniversityErrors);
-      alert("Please fill in all required university details");
       return;
     }
 
     // Check declarations
     if (!data.noPreviousScholarship || !data.courseFullTimeEligible) {
-      alert("Please accept both declarations to proceed");
+      setSubmitError("Please accept both declarations to proceed");
       return;
     }
 
     try {
-      console.log(data.courseField);
+      setIsSubmitting(true);
+      setSubmitError(null);
+
       // Save university details
       const updateResult = await updateUniversityDetailsWithFile(
         {
@@ -1205,36 +1209,38 @@ export default function UploadDocuments({
       );
 
       if (!updateResult.success) {
-        alert(updateResult.message || "Failed to save university details");
+        setSubmitError(
+          updateResult.message || "Failed to save university details"
+        );
+        setIsSubmitting(false);
         return;
       }
 
-      // Submit the application
+      // Submit application
       const submitResult = await submitApplication();
+      console.log("submitApplication response:", submitResult);
 
       if (!submitResult.success) {
-        alert(submitResult.message || "Failed to submit application");
+        setSubmitError(submitResult.message || "Failed to submit application");
+        setIsSubmitting(false);
         return;
       }
 
-      alert("Application submitted successfully!");
-
-      // Mark that we've shown the redirect
+      // Mark redirect shown
       const storageKey = applicationId
         ? `summaryRedirectShown_${applicationId}`
         : null;
-      try {
-        if (storageKey && typeof window !== "undefined") {
-          sessionStorage.setItem(storageKey, "1");
-        }
-      } catch (e) {
-        // ignore
+
+      if (storageKey && typeof window !== "undefined") {
+        sessionStorage.setItem(storageKey, "1");
       }
 
       onSubmissionSuccess?.();
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Failed to submit application. Please try again.");
+      setSubmitError("Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1262,6 +1268,19 @@ export default function UploadDocuments({
           <h2 className="text-2xl font-bold text-gray-800">Upload Documents</h2>
         </div>
       </div>
+      {submitError && (
+        <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-200 animate-slide-up">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-red-900">Submission Failed</h4>
+              <p className="text-sm text-red-700 mt-1">{submitError}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Required Documents Error */}
       {errors.length > 0 && !errors.includes("validation_error") && (
@@ -1988,7 +2007,7 @@ export default function UploadDocuments({
               type="submit"
               disabled={
                 isValidating ||
-                isApplicationEligible === null ||
+                isApplicationEligible !== true ||
                 incomeRejected ||
                 categoryRejected
               }
@@ -2014,6 +2033,11 @@ export default function UploadDocuments({
           )}
         </div>
       </div>
+      {isSubmitting && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-md">
+          <BrandLoader />
+        </div>
+      )}
     </form>
   );
 }
