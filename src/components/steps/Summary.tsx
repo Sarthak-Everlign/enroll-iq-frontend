@@ -203,10 +203,28 @@ export default function Summary({ onBack }: SummaryProps) {
     applicationData?.application_status ||
     "";
 
+  // Status mapping for verification states
+  const statusLower = applicationStatus?.toLowerCase() || "";
+  let displayEnrollmentStatus = data?.Status || data?.status || "Unknown";
+  let displayGrantStatus: string | null = null;
+
+  if (statusLower === "verification_in_progress") {
+    displayEnrollmentStatus = "Submitted";
+    displayGrantStatus = "Verification Pending";
+  } else if (statusLower === "verification_rejected") {
+    displayEnrollmentStatus = "Submitted";
+    displayGrantStatus = "Verification Rejected";
+  } else if (statusLower === "submitted") {
+    // When status is "submitted", show grant status from data if available
+    displayGrantStatus = "Verification Completed"
+  } else if (statusLower === "grant_approved") {
+    displayEnrollmentStatus = "Submitted";
+    displayGrantStatus = "Grant Approved";
+  }
+
   // Determine if we should show Grant Status based on conditions:
   // - NOT if status is "rejected"
   // - NOT if status is "in_progress"
-  const statusLower = applicationStatus?.toLowerCase() || "";
   const shouldShowGrantStatus =
     statusLower !== "rejected" && statusLower !== "in_progress";
 
@@ -219,8 +237,8 @@ export default function Summary({ onBack }: SummaryProps) {
     ["Category", data.Category],
     ["Course Applied", data.Course_applied],
     ["University", data.University],
-    ["Enrollment Status", data.Status || data.status],
-    ...(shouldShowGrantStatus ? [["Grant Status", "Verification Completed"] as [string, any]] : []),
+    ["Enrollment Status", displayEnrollmentStatus],
+    ...(shouldShowGrantStatus && displayGrantStatus ? [["Grant Status", displayGrantStatus] as [string, any]] : []),
   ];
 
   // Only show rejection reasons if status is "rejected"
