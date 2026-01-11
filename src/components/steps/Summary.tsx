@@ -217,6 +217,9 @@ export default function Summary({ onBack }: SummaryProps) {
   } else if (statusLower === "submitted") {
     // When status is "submitted", show grant status from data if available
     displayGrantStatus = "Verification Completed"
+  } else if (statusLower === "grant_approved") {
+    displayEnrollmentStatus = "Submitted";
+    displayGrantStatus = "Grant Approved";
   }
 
   // Determine if we should show Grant Status based on conditions:
