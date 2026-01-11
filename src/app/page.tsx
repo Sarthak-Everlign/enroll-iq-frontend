@@ -414,8 +414,8 @@ export default function Home() {
                 isApplicationSubmitted={isApplicationSubmitted}
                 onSubmissionSuccess={async () => {
                   setIsApplicationSubmitted(true);
-                  // Capture current scroll position
-                  setScrollPosition(window.scrollY);
+                  // Capture current scroll position + viewport center
+                  setScrollPosition(window.scrollY + window.innerHeight / 2);
                   setIsRedirectingToSummary(true);
                   // Show loader for 2 seconds before redirecting
                   await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -440,24 +440,27 @@ export default function Home() {
         </div>
       </main>
       {isRedirectingToSummary && (
-        <div
-          className="absolute z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          style={{
-            position: "absolute",
-            top: `${scrollPosition}px`,
-            left: 0,
-            right: 0,
-            width: "100%",
-            height: "100vh",
-          }}
-        >
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 flex flex-col items-center gap-6">
-            <BrandLoader />
-            <p className="text-slate-700 text-lg font-medium text-center">
-              Redirecting to summary...
-            </p>
+        <>
+          {/* Dimmed background overlay - fixed to viewport */}
+          <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm" />
+          {/* Modal loader at absolute position in document */}
+          <div
+            className="absolute z-[9999]"
+            style={{
+              position: "absolute",
+              top: `${scrollPosition}px`,
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 flex flex-col items-center gap-6">
+              <BrandLoader />
+              <p className="text-slate-700 text-lg font-medium text-center">
+                Redirecting to summary...
+              </p>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
