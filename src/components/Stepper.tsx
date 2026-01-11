@@ -24,7 +24,7 @@ const steps: Step[] = [
   },
   {
     id: 2,
-    name: 'Video KYC',
+    name: 'Selfie Verification',
     description: 'Face Verification',
     icon: <Video className="w-5 h-5 lg:w-6 lg:h-6" />,
   },

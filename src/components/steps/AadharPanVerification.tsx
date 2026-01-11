@@ -5,7 +5,6 @@ import {
   CreditCard,
   Shield,
   CheckCircle2,
-  Loader2,
   ArrowRight,
   ArrowLeft,
   Sparkles,
@@ -365,7 +364,7 @@ export default function AadharPanVerification({
                 className="flex items-center gap-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     Verify with Aadhaar OTP
@@ -448,7 +447,7 @@ export default function AadharPanVerification({
               className="flex items-center gap-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   Verify OTP
@@ -544,7 +543,7 @@ export default function AadharPanVerification({
               onClick={handleContinue}
               className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 btn-gradient btn-shine"
             >
-              Continue to Video KYC
+              Continue to Selfie Verification
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

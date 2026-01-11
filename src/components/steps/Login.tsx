@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, Phone, ArrowRight, CheckCircle2, Loader2, Sparkles, Lock, Eye, EyeOff } from 'lucide-react'
+import { Mail, Phone, ArrowRight, CheckCircle2, Sparkles, Lock, Eye, EyeOff } from 'lucide-react'
 import { register, login, type AuthUser } from '@/lib/api'
 import Image from 'next/image'
 
@@ -358,7 +358,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 }}
               >
                 {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     {isLogin ? 'Sign In' : 'Create Account'}
@@ -404,7 +404,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 Welcome, <span className="text-white font-medium">{successUser.username || successUser.email.split('@')[0]}</span>
               </p>
               <div className="flex items-center justify-center gap-2 text-green-400">
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
                 <span className="text-sm">Loading your application...</span>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { getAuthToken } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import { usePDFDownload } from "./usePDFDownload";
 import { getApplication } from "@/lib/api";
+import LoaderWrapper from "@/components/LoaderWrapper";
 
 interface SummaryProps {
   onBack: () => void;
@@ -158,9 +159,8 @@ export default function Summary({ onBack }: SummaryProps) {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <h2 className="text-2xl font-semibold mb-4">Application Summary</h2>
-        <p className="text-sm text-gray-600">Loading summary...</p>
+      <div className="p-8 min-h-[400px] flex items-center justify-center">
+        <LoaderWrapper message="Loading summary..." />
       </div>
     );
   }
