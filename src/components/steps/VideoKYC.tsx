@@ -62,7 +62,7 @@ export default function VideoKYC({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Check if KYC file already exists on mount
+  // Check if selfie file already exists on mount
   useEffect(() => {
     if (applicationId && step === "instructions") {
       checkExistingKyc();
@@ -89,7 +89,7 @@ export default function VideoKYC({
         setStep("alreadyDone");
       }
     } catch (err) {
-      console.error("Error checking existing KYC:", err);
+      console.error("Error checking existing selfie:", err);
     } finally {
       setIsChecking(false);
     }
@@ -100,13 +100,13 @@ export default function VideoKYC({
     setStep("instructions");
   };
 
-  // Instructions for KYC
+  // Instructions for Selfie Verification
   const instructions = [
-    "Hold your Aadhaar card next to your face",
     "Ensure good lighting on your face",
     "Keep your face centered in the frame",
-    "Make sure the Aadhaar card details are visible",
+    "Look directly at the camera",
     "Remove glasses, caps, or anything covering your face",
+    "Maintain a neutral expression",
   ];
 
   // Start camera stream
@@ -201,7 +201,7 @@ export default function VideoKYC({
     return new File([u8arr], filename, { type: mime });
   };
 
-  // Submit KYC
+  // Submit Selfie
   const handleSubmit = async () => {
     if (!capturedImage) return;
 
@@ -215,7 +215,7 @@ export default function VideoKYC({
 
     try {
       // Convert base64 image to File
-      const imageFile = dataURLtoFile(capturedImage, "kyc-photo.jpg");
+      const imageFile = dataURLtoFile(capturedImage, "selfie-photo.jpg");
 
       // Create FormData
       const formData = new FormData();
@@ -235,7 +235,7 @@ export default function VideoKYC({
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Failed to upload KYC photo");
+        throw new Error(result.message || "Failed to upload selfie");
       }
 
       // Success - proceed to complete step
@@ -255,7 +255,7 @@ export default function VideoKYC({
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to upload KYC photo. Please try again."
+          : "Failed to upload selfie. Please try again."
       );
     } finally {
       setIsUploading(false);
@@ -275,7 +275,7 @@ export default function VideoKYC({
       <div className="flex items-center gap-3 mb-8">
         <div className="h-8 w-1.5 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">
-          Video KYC Verification
+          Selfie Verification
         </h2>
         <Video className="w-5 h-5 text-purple-500" />
       </div>
@@ -290,10 +290,10 @@ export default function VideoKYC({
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-green-900 mb-2">
-                  KYC Already Completed
+                  Selfie Verification Already Completed
                 </h3>
                 <p className="text-green-700">
-                  Your Video KYC verification has already been completed and
+                  Your selfie verification has already been completed and
                   uploaded.
                 </p>
               </div>
@@ -320,7 +320,7 @@ export default function VideoKYC({
               }}
             >
               <RefreshCw className="w-5 h-5" />
-              Do KYC Again
+              Take Selfie Again
             </button>
 
             <button
@@ -335,7 +335,7 @@ export default function VideoKYC({
               }}
               className="flex items-center gap-3 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105 btn-gradient btn-shine"
             >
-              Continue with Existing KYC
+              Continue with Existing Selfie
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -349,7 +349,7 @@ export default function VideoKYC({
             <div className="max-w-2xl mx-auto bg-blue-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-center gap-3 text-blue-700">
                 <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm">Checking for existing KYC...</span>
+                <span className="text-sm">Checking for existing selfie...</span>
               </div>
             </div>
           )}
@@ -365,9 +365,8 @@ export default function VideoKYC({
                   Hello, {userName}!
                 </h3>
                 <p className="text-purple-700">
-                  Complete your Video KYC verification by taking a photo with
-                  your Aadhaar card. This helps us verify your identity
-                  securely.
+                  Complete your selfie verification by taking a photo of yourself.
+                  This helps us verify your identity securely.
                 </p>
               </div>
             </div>
@@ -410,13 +409,9 @@ export default function VideoKYC({
                   <div className="relative">
                     {/* Face outline */}
                     <div className="w-20 h-24 border-4 border-purple-400 rounded-full" />
-                    {/* Aadhaar card representation */}
-                    <div className="absolute -right-8 top-4 w-16 h-10 bg-gradient-to-r from-orange-400 to-green-400 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-lg transform rotate-6">
-                      AADHAAR
-                    </div>
                   </div>
                   <p className="text-purple-600 text-sm font-medium mt-4">
-                    Hold like this
+                    Position like this
                   </p>
                 </div>
 
@@ -427,7 +422,7 @@ export default function VideoKYC({
                   </div>
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-sm">Aadhaar card next to face</span>
+                    <span className="text-sm">Centered in frame</span>
                   </div>
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
@@ -435,7 +430,7 @@ export default function VideoKYC({
                   </div>
                   <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-sm">Card details readable</span>
+                    <span className="text-sm">Looking at camera</span>
                   </div>
                 </div>
               </div>
@@ -510,14 +505,7 @@ export default function VideoKYC({
                 {/* Overlay guides */}
                 <div className="absolute inset-0 pointer-events-none">
                   {/* Face outline guide */}
-                  <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-40 h-52 border-4 border-white/50 rounded-full" />
-
-                  {/* Aadhaar position guide */}
-                  <div className="absolute top-1/2 right-8 -translate-y-1/2 w-32 h-20 border-2 border-dashed border-white/50 rounded-lg flex items-center justify-center">
-                    <span className="text-white/70 text-xs">
-                      Place Aadhaar here
-                    </span>
-                  </div>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-52 border-4 border-white/50 rounded-full" />
 
                   {/* Corner guides */}
                   <div className="absolute top-4 left-4 w-12 h-12 border-l-4 border-t-4 border-purple-500 rounded-tl-xl" />
@@ -544,8 +532,7 @@ export default function VideoKYC({
           {/* Instructions reminder */}
           <div className="max-w-2xl mx-auto bg-purple-50 rounded-xl p-4 border border-purple-200">
             <p className="text-purple-700 text-sm text-center">
-              Position your face in the oval guide and hold your Aadhaar card
-              next to your face
+              Position your face in the oval guide and look directly at the camera
             </p>
           </div>
 
@@ -592,7 +579,7 @@ export default function VideoKYC({
               <div className="p-4">
                 <img
                   src={capturedImage}
-                  alt="Captured KYC"
+                  alt="Captured Selfie"
                   className="w-full rounded-xl transform scale-x-[-1]"
                 />
               </div>
@@ -686,10 +673,10 @@ export default function VideoKYC({
             <CheckCircle2 className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            KYC Verification Complete!
+            Selfie Verification Complete!
           </h2>
           <p className="text-gray-600 mb-6">
-            Your identity has been successfully verified.
+            Your selfie has been successfully captured and verified.
           </p>
           <div className="flex items-center justify-center gap-2 text-green-600">
             <Sparkles className="w-5 h-5 animate-pulse" />

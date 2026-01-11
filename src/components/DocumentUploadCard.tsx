@@ -7,7 +7,6 @@ import {
   X,
   Check,
   AlertCircle,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   CheckCircle2,
@@ -230,7 +229,7 @@ export default function DocumentUploadCard({
           )}
         >
           {status === "checking" || status === "uploading" ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : status === "success" ? (
             <Check className="w-5 h-5" />
           ) : status === "exists" ? (
@@ -277,7 +276,7 @@ export default function DocumentUploadCard({
           {/* Verification Status for existing files */}
           {verificationStatus?.isVerifying && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
-              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
+              <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
               <p className="text-xs font-medium text-blue-700">
                 Validating document...
               </p>
@@ -405,14 +404,14 @@ export default function DocumentUploadCard({
           {/* Status Message - Compact */}
           {status === "checking" && (
             <div className="flex items-center gap-1.5 text-blue-600 text-xs px-1">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <span>Checking...</span>
             </div>
           )}
 
           {status === "uploading" && (
             <div className="flex items-center gap-1.5 text-blue-600 text-xs px-1">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <span>Uploading...</span>
             </div>
           )}
@@ -429,7 +428,7 @@ export default function DocumentUploadCard({
           {/* Verification Status */}
           {verificationStatus?.isVerifying && (
             <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
-              <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin flex-shrink-0" />
+              <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
               <p className="text-xs font-medium text-blue-700">
                 Validating document...
               </p>

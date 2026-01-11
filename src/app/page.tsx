@@ -24,7 +24,9 @@ import {
   getApplication,
   updateApplicationStep,
 } from "@/lib/api";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
+import LoaderWrapper from "@/components/LoaderWrapper";
+import { BrandLoader } from "@/loader/src/components/BrandLoader";
 
 export interface Application {
   id: string;
@@ -158,6 +160,8 @@ const initialDocumentsData: DocumentsFormData = {
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const [isRedirectingToSummary, setIsRedirectingToSummary] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
@@ -328,29 +332,7 @@ export default function Home() {
   };
 
   if (isLoading) {
-    const backgroundGradient =
-      "radial-gradient(at 51% 67%, hsla(216,71%,87%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 34% 21%, hsla(214,83%,92%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 56% 37%, hsla(205,100%,98%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 1% 2%, hsla(217,65%,69%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 8% 75%, hsla(217,65%,71%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 67% 94%, hsla(217,65%,73%,1) 0px, transparent 50%)," +
-      "radial-gradient(at 0% 98%, hsla(209,89%,60%,1) 0px, transparent 50%)";
-
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center relative overflow-hidden"
-        style={{
-          backgroundImage: backgroundGradient,
-          backgroundColor: "#C9D7FF",
-        }}
-      >
-        <div className="relative z-10 text-center">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-slate-700 text-lg font-medium">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoaderWrapper fullScreen message="Loading..." />;
   }
 
   if (!isLoggedIn) {
@@ -432,6 +414,12 @@ export default function Home() {
                 isApplicationSubmitted={isApplicationSubmitted}
                 onSubmissionSuccess={async () => {
                   setIsApplicationSubmitted(true);
+                  // Capture current scroll position
+                  setScrollPosition(window.scrollY);
+                  setIsRedirectingToSummary(true);
+                  // Show loader for 2 seconds before redirecting
+                  await new Promise((resolve) => setTimeout(resolve, 2000));
+                  setIsRedirectingToSummary(false);
                   setCurrentStep(5);
                   await updateApplicationStep(5);
                   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -451,6 +439,26 @@ export default function Home() {
           </div>
         </div>
       </main>
+      {isRedirectingToSummary && (
+        <div
+          className="absolute z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          style={{
+            position: "absolute",
+            top: `${scrollPosition}px`,
+            left: 0,
+            right: 0,
+            width: "100%",
+            height: "100vh",
+          }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 flex flex-col items-center gap-6">
+            <BrandLoader />
+            <p className="text-slate-700 text-lg font-medium text-center">
+              Redirecting to summary...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

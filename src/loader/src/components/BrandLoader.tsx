@@ -102,7 +102,7 @@ export function BrandLoader() {
           ease: "easeInOut",
         }}
       >
-        <span className="text-blue-600">Running Recommendations</span>
+        <span className="text-blue-600">getting the summary of your application</span>
         <motion.span
           animate={{
             opacity: [0, 1, 0],

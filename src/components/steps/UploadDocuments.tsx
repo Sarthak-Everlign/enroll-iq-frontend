@@ -5,6 +5,7 @@ import DocumentUploadCard from "@/components/DocumentUploadCard";
 import SearchableSelect from "@/components/SearchableSelect";
 import { updateApplicationCategory, updateIncomeDetails } from "@/lib/api";
 import { BrandLoader } from "@/loader/src/components/BrandLoader";
+import LoaderWrapper from "@/components/LoaderWrapper";
 import FormSelect from "@/components/FormSelect";
 import {
   ArrowLeft,
@@ -20,7 +21,6 @@ import {
   CheckSquare,
   DollarSign,
   HelpCircle,
-  Loader2,
   CheckCircle2,
   Download,
 } from "lucide-react";
@@ -340,7 +340,7 @@ export default function UploadDocuments({
       // ignore sessionStorage access errors
     }
 
-    const recordAndNavigate = () => {
+    const recordAndNavigate = async () => {
       hasShownSummaryRedirect.current = true;
       try {
         if (storageKey && typeof window !== "undefined") {
@@ -349,6 +349,8 @@ export default function UploadDocuments({
       } catch (e) {
         // ignore
       }
+      // Show loader for 2 seconds before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       onSubmissionSuccess?.();
     };
 
@@ -1235,6 +1237,8 @@ export default function UploadDocuments({
         sessionStorage.setItem(storageKey, "1");
       }
 
+      // Show loader for 2 seconds before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       onSubmissionSuccess?.();
     } catch (error) {
       console.error("Submission error:", error);
@@ -1575,7 +1579,7 @@ export default function UploadDocuments({
               {/* Save Status Indicator */}
               {categorySaveStatus.saving && (
                 <div className="flex items-center gap-2 mt-2 text-blue-600 text-xs">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                   <span>Saving category...</span>
                 </div>
               )}
@@ -1693,7 +1697,7 @@ export default function UploadDocuments({
 
               {loadingUniversities ? (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
-                  <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                  <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm text-gray-600">
                     Loading universities...
                   </span>
@@ -2020,7 +2024,7 @@ export default function UploadDocuments({
             >
               {isValidating ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Validating...
                 </>
               ) : (
